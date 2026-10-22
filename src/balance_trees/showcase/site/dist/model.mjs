@@ -1,5 +1,5 @@
 // Browser reference adapter. Python implementations emit this same trace schema.
-export const MAX_KEYS = 64;
+export const MAX_KEYS = 128; // Full-history traces only; larger runs use the worker.
 export const FLAVORS = {
   treap: { name: 'Treap', tag: 'Priority heap', note: 'A BST by key, a min-heap by random priority. Rotate the new node upward until both orders hold. Priorities are extra balance information.' },
   halving: { name: 'Halving walk', tag: 'Local randomized rule', note: 'Try a rotation with probability ½, then ¼, then ⅛… Continue from the current parent after either outcome. A success skips the demoted old parent.' },
@@ -17,7 +17,6 @@ export const ORDERS = {
 export function parseSequence(text) {
   if (typeof text !== 'string' || !text.trim()) throw new Error('Enter comma-separated integers, for example 8, 4, 12, 2.');
   const parts = text.split(',');
-  if (parts.length > MAX_KEYS) throw new Error(`Use at most ${MAX_KEYS} keys for a readable animation.`);
   return parts.map((part, index) => {
     const token = part.trim();
     if (!/^[+-]?[0-9]+$/.test(token)) throw new Error(`Item ${index + 1} is not an integer. Separate every number with a comma.`);
@@ -27,7 +26,7 @@ export function parseSequence(text) {
   });
 }
 
-function randomGenerator(seed) {
+export function randomGenerator(seed) {
   let state = (seed >>> 0) || 0x9e3779b9;
   return () => {
     state ^= state << 13; state ^= state >>> 17; state ^= state << 5;
@@ -36,7 +35,7 @@ function randomGenerator(seed) {
 }
 
 export function makeSequence(order, count, seed) {
-  if (!Number.isInteger(count) || count < 1 || count > MAX_KEYS || !(order in ORDERS) || order === 'custom') throw new Error('Choose a preset and between 1 and 64 keys.');
+  if (!Number.isInteger(count) || count < 1 || count > MAX_KEYS || !(order in ORDERS) || order === 'custom') throw new Error('This detailed preset exceeds the full-history limit. Use the streaming worker.');
   const values = Array.from({ length: count }, (_, i) => i + 1);
   if (order === 'increasing') return values;
   if (order === 'decreasing') return values.reverse();
@@ -60,7 +59,7 @@ export function makeSequence(order, count, seed) {
 }
 
 export function simulate(sequence, strategy = 'treap', seed = 2026) {
-  if (!Array.isArray(sequence) || !sequence.length || sequence.length > MAX_KEYS || sequence.some(x => !Number.isSafeInteger(x))) throw new Error('Use 1 to 64 safe integer keys.');
+  if (!Array.isArray(sequence) || !sequence.length || sequence.length > MAX_KEYS || sequence.some(x => !Number.isSafeInteger(x))) throw new Error('Detailed traces support 1 to 128 keys; larger runs use the streaming worker.');
   if (!Object.hasOwn(FLAVORS, strategy)) throw new Error('Unknown strategy.');
   if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295) throw new Error('Seed must be an integer from 0 to 4294967295.');
   let root = null, insertion = 0, key = null, rotations = 0, visits = 0, bits = 0, insertionRotations = 0;
@@ -175,7 +174,7 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
 }
 
 export function validateTrace(trace) {
-  if (!trace || trace.schema_version !== 1 || !Array.isArray(trace.sequence) || !trace.sequence.length || trace.sequence.length > MAX_KEYS || trace.sequence.some(x => !Number.isSafeInteger(x))) throw new Error('Expected a version 1 rotation trace with 1–64 integer keys.');
+  if (!trace || trace.schema_version !== 1 || !Array.isArray(trace.sequence) || !trace.sequence.length || trace.sequence.length > MAX_KEYS || trace.sequence.some(x => !Number.isSafeInteger(x))) throw new Error('Expected a version 1 detailed trace with 1–128 integer keys.');
   if (!Array.isArray(trace.frames) || !trace.frames.length || trace.frames.length > 20000) throw new Error('Trace must have between 1 and 20,000 frames.');
   for (const frame of trace.frames) {
     if (!Array.isArray(frame.nodes) || frame.nodes.length > MAX_KEYS || typeof frame.title !== 'string' || typeof frame.description !== 'string' || typeof frame.kind !== 'string' || !Number.isInteger(frame.insertion) || frame.insertion < 0 || frame.insertion > trace.sequence.length || !frame.stats) throw new Error('Trace contains an invalid frame.');

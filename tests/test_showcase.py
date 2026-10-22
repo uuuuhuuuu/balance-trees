@@ -25,7 +25,7 @@ class ShowcaseTraceTests(unittest.TestCase):
             "1.5,2",
             "NaN",
             "9007199254740992",
-            ",".join(["1"] * 65),
+            ",".join(["1"] * 129),
         ):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 parse_sequence(text)

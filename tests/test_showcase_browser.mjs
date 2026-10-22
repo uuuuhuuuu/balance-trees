@@ -4,9 +4,10 @@ import { spawnSync } from 'node:child_process';
 import { FLAVORS, ORDERS, makeSequence, parseSequence, simulate, validateTrace } from '../src/balance_trees/showcase/site/dist/model.mjs';
 import { TracePlayer } from '../src/balance_trees/showcase/site/dist/player.mjs';
 
-test('CSV input is strict, bounded, and supports signed keys and duplicates', () => {
+test('CSV input is strict and supports signed keys and duplicates', () => {
   assert.deepEqual(parseSequence(' 8, -4,\n0, +12, 8 '), [8, -4, 0, 12, 8]);
-  for (const value of ['', '1,,2', '1,', '1 2', '1.5,2', 'NaN', '9007199254740992', Array(65).fill('1').join(',')]) assert.throws(() => parseSequence(value));
+  for (const value of ['', '1,,2', '1,', '1 2', '1.5,2', 'NaN', '9007199254740992']) assert.throws(() => parseSequence(value));
+  assert.equal(parseSequence(Array(1000).fill('1').join(',')).length, 1000);
 });
 test('all presets produce reproducible permutations for even and odd sizes', () => {
   for (const order of Object.keys(ORDERS).filter(name => name !== 'custom')) for (const count of [1, 7, 16]) {
@@ -108,4 +109,20 @@ test('static hosts and unavailable APIs fall back to browser simulation', async 
     async () => ({ ok: true, json: async () => { throw new Error('HTML response'); } }),
     async () => { throw new Error('Network unavailable'); },
   ]) assert.equal(await detectEngine('https://example.github.io/trees/', 'auto', request), 'browser');
+});
+
+test('detailed fast-forward batches display events and still reaches the final state', { timeout: 6000 }, async () => {
+  let completed;
+  const done = new Promise(resolve => { completed = resolve; });
+  const shown = [];
+  const player = new TracePlayer((frame, index, playing) => {
+    if (!frame) return;
+    shown.push(index);
+    if (!playing && frame.kind === 'settled' && index === player.trace.frames.length - 1) completed();
+  });
+  player.load(simulate(makeSequence('random', 32, 42), 'treap', 42));
+  player.setDelay(0); player.play(); await done;
+  assert.equal(player.frame.stats.nodes, 32);
+  assert.equal(player.playing, false);
+  assert.ok(shown.length < player.trace.frames.length);
 });

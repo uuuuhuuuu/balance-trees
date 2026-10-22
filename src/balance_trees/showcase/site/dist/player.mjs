@@ -22,7 +22,8 @@ export class TracePlayer {
   play() {
     if (!this.trace || this.playing) return;
     if (this.index === this.trace.frames.length - 1) this.index = 0;
-    this.timer = setInterval(() => this.seek(this.index + 1), this.delay); this.notify();
+    const batch = this.delay === 0 ? Math.max(1, Math.ceil(this.trace.frames.length / 100)) : 1;
+    this.timer = setInterval(() => this.seek(this.index + batch), this.delay === 0 ? 16 : this.delay); this.notify();
   }
   pause() { if (this.timer !== null) clearInterval(this.timer); this.timer = null; this.notify(); }
   setDelay(delay) { const wasPlaying = this.playing; this.pause(); this.delay = delay; if (wasPlaying) this.play(); }

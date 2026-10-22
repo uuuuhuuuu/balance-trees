@@ -1,6 +1,9 @@
 import { FLAVORS, ORDERS, makeSequence, parseSequence, simulate, validateTrace } from './model.mjs';
 import { TracePlayer } from './player.mjs';
 import { detectEngine } from './runtime.mjs';
+import { initialTheme, readPreference, savePreference, THEME_KEY, TUTORIAL_KEY, TUTORIAL_STEPS } from './interface.mjs';
+import { DETAIL_LIMIT } from './large-model.mjs';
+import { StreamPlayer } from './stream-player.mjs';
 
 const $ = id => document.getElementById(id);
 const svgNS = 'http://www.w3.org/2000/svg';
@@ -10,11 +13,41 @@ let orderLabel = 'Increasing', autoFit = true, animationId = null;
 let camera = { x: 0, y: 0, scale: 1 }, positions = new Map();
 const nodeElements = new Map(), edgeElements = new Map();
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const player = new TracePlayer(render);
+let player = new TracePlayer(render);
+let preferences;
+try { preferences = window.localStorage; } catch { /* Optional storage. */ }
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  $('theme-toggle').textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+  $('theme-toggle').setAttribute('aria-pressed', String(theme === 'dark'));
+  document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#12161e' : '#f5f6f8';
+}
+applyTheme(initialTheme(preferences, window.matchMedia('(prefers-color-scheme: dark)').matches));
+$('theme-toggle').addEventListener('click', () => {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  applyTheme(theme); savePreference(preferences, THEME_KEY, theme);
+});
+let tutorialStep = 0;
+function renderTutorial() {
+  const step = TUTORIAL_STEPS[tutorialStep];
+  $('tutorial-progress').textContent = `${tutorialStep + 1} / ${TUTORIAL_STEPS.length}`;
+  $('tutorial-step-title').textContent = step.title;
+  $('tutorial-description').textContent = step.text;
+  $('tutorial-back').disabled = tutorialStep === 0;
+  $('tutorial-next').textContent = tutorialStep === TUTORIAL_STEPS.length - 1 ? 'Done' : 'Next';
+}
+function openTutorial() { player.pause(); tutorialStep = 0; renderTutorial(); $('tutorial').showModal(); }
+$('tutorial-open').addEventListener('click', openTutorial);
+$('tutorial-close').addEventListener('click', () => $('tutorial').close());
+$('tutorial-back').addEventListener('click', () => { tutorialStep--; renderTutorial(); });
+$('tutorial-next').addEventListener('click', () => {
+  if (tutorialStep === TUTORIAL_STEPS.length - 1) $('tutorial').close();
+  else { tutorialStep++; renderTutorial(); }
+});
+$('tutorial').addEventListener('close', () => savePreference(preferences, TUTORIAL_KEY, 'yes'));
 
 for (const [value, info] of Object.entries(FLAVORS)) $('strategy').add(new Option(info.name, value));
 for (const [value, name] of Object.entries(ORDERS)) $('order').add(new Option(name, value));
-$('strategy-tag').textContent = FLAVORS.treap.tag;
 
 function svgElement(tag, attributes = {}) {
   const element = document.createElementNS(svgNS, tag);
@@ -28,7 +61,8 @@ function validSeed() {
   return seed;
 }
 function layout(frame) {
-  const ranks = new Map([...new Set(player.trace.sequence)].sort((a, b) => a - b).map((key, index) => [key, index]));
+  const keys = player.streaming ? frame.nodes.map(node => node.key) : player.trace.sequence;
+  const ranks = new Map([...new Set(keys)].sort((a, b) => a - b).map((key, index) => [key, index]));
   const nodes = new Map(frame.nodes.map(node => [node.key, node]));
   const result = new Map(), stack = frame.root === null ? [] : [[frame.root, 0]];
   while (stack.length) {
@@ -83,8 +117,8 @@ function paint(frame, points, view) {
       const end = points.get(child), edge = edgeElements.get(`${node.key}:${child}`);
       const middleY = (parent.y + end.y) / 2;
       edge.children[0].setAttribute('d', `M ${parent.x} ${parent.y + 23} C ${parent.x} ${middleY} ${end.x} ${middleY} ${end.x} ${end.y - 24}`);
-      edge.children[1].setAttribute('x', parent.x * .7 + end.x * .3 + (side === 'L' ? -9 : 9));
-      edge.children[1].setAttribute('y', parent.y + 36);
+      edge.children[1].setAttribute('x', (parent.x + end.x) / 2 + (side === 'L' ? -9 : 9));
+      edge.children[1].setAttribute('y', parent.y + 52);
     }
   }
 }
@@ -118,18 +152,20 @@ function render(frame, index, playing) {
   $('tree-name').textContent = flavor?.name ?? String(trace.strategy ?? 'Imported tree');
   $('order-name').textContent = orderLabel;
   $('source-badge').textContent = trace.source === 'python' ? 'Python implementation' : trace.source === 'browser' ? 'Browser simulation' : 'Imported trace';
+  $('visible-count').textContent = frame.windowed ? `${frame.nodes.length} / ${frame.stats.nodes.toLocaleString()} nodes shown` : '';
   $('strategy-note').textContent = flavor?.note ?? 'This implementation supplies its own snapshots and explanations through the common trace format.';
   $('phase').textContent = ({ ready: 'Ready', begin: 'Search', compare: 'Compare', insert: 'Leaf placed', priority: 'Priority', coin: 'Decision', prepare: 'Before rotation', rotate: 'After rotation', settled: 'Settled', duplicate: 'Duplicate' })[frame.kind] ?? frame.kind;
   $('event-title').textContent = frame.title; $('event-description').textContent = frame.description;
   $('insertion-number').textContent = String(frame.insertion).padStart(2, '0');
   $('current-key').textContent = frame.key === null ? 'No key yet' : `Key ${frame.key}`;
-  $('event-index').textContent = `${index + 1} / ${trace.frames.length}`;
+  $('event-index').textContent = `${index + 1} / ${trace.frames.length}${player.streaming ? ' recent' : ''}`;
   $('timeline').max = trace.frames.length - 1; $('timeline').value = index;
-  $('play-label').textContent = playing ? 'Pause' : index === trace.frames.length - 1 ? 'Replay' : 'Play';
+  $('play-label').textContent = playing ? 'Pause' : index === trace.frames.length - 1 && (!player.streaming || player.done) ? 'Replay' : 'Play';
   $('play-symbol').textContent = playing ? 'Ⅱ' : '▶';
   $('play').setAttribute('aria-label', playing ? 'Pause animation' : 'Play animation');
   $('previous').disabled = index === 0;
-  for (const id of ['next', 'next-rotation', 'next-insertion']) $(id).disabled = index === trace.frames.length - 1;
+  for (const id of ['next', 'next-rotation', 'next-insertion']) $(id).disabled = index === trace.frames.length - 1 && (!player.streaming || player.done);
+  if (player.streaming && trace.strategy === 'none') $('next-rotation').disabled = true;
   const stats = frame.stats;
   for (const [id, name] of [['metric-nodes', 'nodes'], ['metric-height', 'height'], ['metric-rotations', 'rotations'], ['metric-visits', 'visits'], ['metric-bits', 'random_bits'], ['metric-insertion-rotations', 'insertion_rotations']]) $(id).textContent = stats[name];
   $('metric-depth').textContent = stats.mean_depth.toFixed(2);
@@ -143,7 +179,7 @@ function render(frame, index, playing) {
     $('coin-outcome').textContent = frame.outcome ? 'Coin outcome: yes' : 'Coin outcome: no';
   }
   const settled = frame.kind === 'settled' ? frame.insertion : Math.max(0, frame.insertion - 1);
-  $('sequence-progress').textContent = `${settled} / ${trace.sequence.length} INSERTED`;
+  $('sequence-progress').textContent = `${settled.toLocaleString()} / ${(trace.total_count ?? trace.sequence.length).toLocaleString()} inserted`;
   for (const [i, chip] of [...$('sequence-chips').children].entries()) {
     chip.classList.toggle('done', i < settled);
     chip.classList.toggle('current', i === frame.insertion - 1);
@@ -153,23 +189,59 @@ function render(frame, index, playing) {
   $('svg-description').textContent = `${frame.title}. ${frame.description} ${stats.nodes} nodes, height ${stats.height}.`;
   draw(frame);
 }
-function load(trace, label) {
-  validateTrace(trace);
-  orderLabel = label; autoFit = true; positions = new Map();
+function setInputChips(trace) {
+  $('input-label').textContent = player.streaming ? `Input (first ${trace.sequence.length})` : 'Input';
   $('sequence-chips').replaceChildren();
   trace.sequence.forEach((key, index) => {
     const chip = document.createElement('button'); chip.className = 'key-chip'; chip.type = 'button';
     chip.textContent = key; chip.title = `Jump to insertion ${index + 1}: ${key}`;
-    chip.addEventListener('click', () => { player.pause(); player.seek(trace.frames.findIndex(frame => frame.insertion === index + 1)); });
+    chip.disabled = Boolean(player.streaming);
+    if (!player.streaming) chip.addEventListener('click', () => { player.pause(); player.seek(trace.frames.findIndex(frame => frame.insertion === index + 1)); });
     $('sequence-chips').append(chip);
   });
-  player.load(trace);
+}
+function load(trace, label) {
+  validateTrace(trace);
+  player.pause(); player.dispose?.();
+  player = new TracePlayer(render); player.setDelay(Number($('speed').value));
+  orderLabel = label; autoFit = true; positions = new Map();
+  $('export-trace').disabled = false;
+  $('export-trace').title = '';
+  setInputChips(trace); player.load(trace);
+}
+function startStream(config, autoplay = false) {
+  player.pause(); player.dispose?.();
+  autoFit = true; positions = new Map();
+  orderLabel = ORDERS[config.order ?? 'custom'];
+  $('export-trace').disabled = true;
+  $('export-trace').title = 'Large runs retain recent frames only. Full trace export is available for detailed runs.';
+  $('source-badge').textContent = 'Preparing worker…';
+  const runner = new StreamPlayer(config,
+    (...args) => { if (player === runner) render(...args); },
+    message => { if (player === runner) error(message); },
+    ready => {
+      if (player !== ready) return;
+      $('count').value = ready.trace.total_count;
+      setInputChips(ready.trace);
+      if (autoplay) ready.play();
+    });
+  player = runner; runner.setDelay(Number($('speed').value));
 }
 async function build(custom = false) {
   const token = ++generation; request?.abort(); player.pause(); error();
   try {
     const seed = validSeed(), strategy = $('strategy').value;
     const order = custom ? 'custom' : $('order').value;
+    const count = Number($('count').value);
+    const text = $('sequence').value;
+    let entries = 1;
+    if (order === 'custom') for (const char of text) { if (char === ',') entries++; if (entries > DETAIL_LIMIT) break; }
+    if ((order !== 'custom' && count > DETAIL_LIMIT) || (order === 'custom' && entries > DETAIL_LIMIT)) {
+      $('order').value = order; $('count').disabled = order === 'custom';
+      startStream({ strategy, seed, order, ...(order === 'custom' ? { text } : { count }) });
+      if (order !== 'custom') $('sequence').value = '';
+      return;
+    }
     const sequence = order === 'custom' ? parseSequence($('sequence').value) : makeSequence(order, Number($('count').value), seed);
     let trace;
     if (pythonAvailable) {
@@ -188,13 +260,16 @@ function download(text, filename, type) {
 }
 $('generate').addEventListener('click', () => build());
 $('use-sequence').addEventListener('click', () => build(true));
-$('strategy').addEventListener('change', () => { $('strategy-tag').textContent = FLAVORS[$('strategy').value]?.tag ?? 'Imported trace'; });
 $('order').addEventListener('change', () => { $('count').disabled = $('order').value === 'custom'; });
 $('import-sequence').addEventListener('click', () => $('sequence-file').click());
 $('sequence-file').addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file) return;
   try {
-    if (file.size > 65536) throw new Error('Sequence files must be smaller than 64 KiB.');
+    if (file.size > 65536) {
+      generation++; request?.abort(); error();
+      $('order').value = 'custom'; $('count').disabled = true; $('sequence').value = '';
+      startStream({ strategy: $('strategy').value, seed: validSeed(), file }); return;
+    }
     const text = await file.text(); parseSequence(text); $('sequence').value = text; await build(true);
   } catch (failure) { error(failure.message); }
   finally { event.target.value = ''; }
@@ -203,7 +278,7 @@ $('import-trace').addEventListener('click', () => $('trace-file').click());
 $('trace-file').addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file) return;
   try {
-    if (file.size > 15 * 1024 * 1024) throw new Error('Trace files must be smaller than 15 MiB.');
+    if (file.size > 64 * 1024 * 1024) throw new Error('Detailed trace files must be smaller than 64 MiB.');
     const trace = validateTrace(JSON.parse(await file.text()));
     generation++; request?.abort(); player.pause(); error();
     $('sequence').value = trace.sequence.join(', '); $('order').value = 'custom'; $('count').value = trace.sequence.length; $('count').disabled = true;
@@ -213,19 +288,22 @@ $('trace-file').addEventListener('change', async event => {
   finally { event.target.value = ''; }
 });
 $('export-trace').addEventListener('click', () => { if (player.trace) download(JSON.stringify(player.trace), `rotation-lab-${String(player.trace.strategy).replace(/[^a-z0-9-]/gi, '_')}.json`, 'application/json'); });
-$('play').addEventListener('click', () => player.playing ? player.pause() : player.play());
-$('restart').addEventListener('click', () => { player.pause(); player.seek(0); });
+function togglePlayback() {
+  if (player.streaming && player.done) startStream(player.config, true);
+  else if (player.playing) player.pause();
+  else player.play();
+}
+$('play').addEventListener('click', togglePlayback);
+$('restart').addEventListener('click', () => {
+  if (player.streaming) startStream(player.config);
+  else { player.pause(); player.seek(0); }
+});
 $('previous').addEventListener('click', () => player.step(-1));
 $('next').addEventListener('click', () => player.step());
 $('next-rotation').addEventListener('click', () => player.nextRotation());
 $('next-insertion').addEventListener('click', () => player.nextInsertion());
 $('timeline').addEventListener('input', event => { player.pause(); player.seek(Number(event.target.value)); });
 $('speed').addEventListener('change', event => player.setDelay(Number(event.target.value)));
-$('present').addEventListener('click', () => {
-  document.body.classList.toggle('presentation');
-  $('present').setAttribute('aria-pressed', String(document.body.classList.contains('presentation')));
-  $('present').textContent = document.body.classList.contains('presentation') ? 'Exit presentation ⤡' : 'Presentation mode ⤢';
-});
 function zoom(factor) {
   if (!player.frame) return;
   if (animationId !== null) cancelAnimationFrame(animationId);
@@ -254,11 +332,13 @@ for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) stage.
 stage.addEventListener('wheel', event => { if (event.ctrlKey || event.metaKey) { event.preventDefault(); zoom(event.deltaY < 0 ? 1.1 : 1 / 1.1); } }, { passive: false });
 new ResizeObserver(() => { if (player.frame) draw(player.frame, false); }).observe(stage);
 document.addEventListener('keydown', event => {
+  if ($('tutorial').open) return;
   if (event.target.closest('input,select,textarea,button,a,summary')) return;
-  if (event.code === 'Space') { event.preventDefault(); player.playing ? player.pause() : player.play(); }
+  if (event.code === 'Space') { event.preventDefault(); togglePlayback(); }
   if (event.code === 'ArrowRight') { event.preventDefault(); player.step(); }
   if (event.code === 'ArrowLeft') { event.preventDefault(); player.step(-1); }
 });
 const engineMode = document.querySelector('meta[name="rotation-lab-engine"]')?.content ?? 'auto';
 pythonAvailable = await detectEngine(document.baseURI, engineMode) === 'python';
 await build();
+if (!readPreference(preferences, TUTORIAL_KEY)) openTutorial();

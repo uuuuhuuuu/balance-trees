@@ -13,7 +13,8 @@ are included as baselines; the halving walk is a separate experimental strategy.
 Rotation Lab is a separate visual guide with treaps and all six experimental
 BST flavors. It shows search comparisons, leaf insertion, coin decisions, and
 the state before and after every primitive rotation. Play, pause, step backward,
-jump to the next rotation or insertion, pan, zoom, and switch to presentation mode.
+jump to the next rotation or insertion, pan, and zoom. The interface has dark/light
+themes, uniform typography, and a tutorial popup instead of a landing page.
 
 ```sh
 PYTHONPATH=src python -m balance_trees.showcase --port 8000
@@ -21,10 +22,13 @@ PYTHONPATH=src python -m balance_trees.showcase --port 8000
 
 Open `http://127.0.0.1:8000`. Choose increasing, random, converging, decreasing,
 pairs, bitonic, or runs. Paste comma-separated integers or import a `.csv` / `.txt`
-file. Signed integers and duplicates are supported; the showcase caps inputs
-at 64 keys so individual steps remain inspectable.
+file. Signed integers and duplicates are supported. Key counts can reach millions,
+subject to browser memory. Large runs execute in a worker, display at most 96
+nodes around the current operation, and retain exact statistics for the whole tree.
+Choose **Fast-forward** to batch events; 10× and 100× playback are also available.
 
-The local server visualizes the actual Python implementations. The same static
+For detailed runs of up to 128 entries, the local server visualizes the actual
+Python implementations. Larger runs use the browser worker. The same static
 website can be hosted from `src/balance_trees/showcase/site/dist/`; it uses a
 browser reference simulator when the Python API is absent. Their random
 generators differ, and the interface identifies which engine produced the run.
@@ -117,6 +121,11 @@ src/balance_trees/
   reporting.py        Aligned text, Markdown, and CSV exports
   experiment.py       Experiment orchestration and CLI
   demo.py             Interactive inspection through a command-line trace
+  showcase/           Minimal website, tutorial, themes, detailed traces, and worker
+    trace.py          Observe actual Python implementations
+    site/dist/        Browser UI and playback modules
+    site/dist/large-model.mjs   Typed-array engine for large visual runs
+    site/dist/large-worker.mjs  Batched simulation outside the UI thread
 ```
 
 `tests/` contains standard-library `unittest` tests. Generated experiment data

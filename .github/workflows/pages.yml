@@ -51,8 +51,14 @@ jobs:
           node --check src/balance_trees/showcase/site/dist/model.mjs
           node --check src/balance_trees/showcase/site/dist/player.mjs
           node --check src/balance_trees/showcase/site/dist/runtime.mjs
+          node --check src/balance_trees/showcase/site/dist/interface.mjs
+          node --check src/balance_trees/showcase/site/dist/large-model.mjs
+          node --check src/balance_trees/showcase/site/dist/large-worker.mjs
+          node --check src/balance_trees/showcase/site/dist/stream-player.mjs
       - name: Test browser models and playback
-        run: node tests/test_showcase_browser.mjs
+        run: |
+          node tests/test_showcase_browser.mjs
+          node tests/test_large_showcase.mjs
       - name: Prepare browser-only website
         env:
           PYTHONPATH: src

@@ -10,7 +10,7 @@ from ..strategies import STRATEGIES
 from ..strategies.base import RebalanceContext
 from ..tree import BST, Node
 
-MAX_KEYS = 64
+MAX_KEYS = 128
 SAFE_INTEGER = 2**53 - 1
 
 
