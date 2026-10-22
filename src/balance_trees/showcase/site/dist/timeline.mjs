@@ -11,7 +11,18 @@ export class EventTimeline {
     this.items = container.firstElementChild;
     this.frames = []; this.index = -1;
     container.addEventListener('scroll', () => this.draw(), { passive: true });
+    // Select on press: a playback update can replace a row before mouseup.
+    container.addEventListener('pointerdown', event => {
+      if (event.button !== 0) return;
+      const row = event.target.closest('button[data-index]');
+      if (!row) return;
+      event.preventDefault();
+      const index = Number(row.dataset.index);
+      onSelect(index);
+      this.items.querySelector(`[data-index="${index}"]`)?.focus({ preventScroll: true });
+    });
     container.addEventListener('click', event => {
+      if (event.detail > 0) return; // Pointer presses were already handled.
       const row = event.target.closest('button[data-index]');
       if (row) onSelect(Number(row.dataset.index));
     });
@@ -62,5 +73,58 @@ export class EventTimeline {
     }
     this.items.replaceChildren(...rows);
     if (focused !== null) this.items.querySelector(`[data-index="${focused}"]`)?.focus({ preventScroll: true });
+  }
+}
+
+// The progress bar seeks directly on press/drag instead of relying on the
+// browser's range-track paging behavior. Resume playback only after release.
+export class TimelineScrubber {
+  constructor(slider, getPlayer) {
+    this.slider = slider; this.getPlayer = getPlayer; this.drag = null;
+    slider.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || this.drag) return;
+      const player = getPlayer();
+      if (!player.trace?.frames.length) return;
+      event.preventDefault();
+      this.drag = { player, playing: player.playing, pointerId: event.pointerId };
+      player.pause();
+      slider.focus({ preventScroll: true });
+      slider.setPointerCapture(event.pointerId);
+      this.move(event);
+    });
+    slider.addEventListener('pointermove', event => this.move(event));
+    slider.addEventListener('pointerup', event => {
+      if (event.pointerId !== this.drag?.pointerId) return;
+      this.move(event); this.finish();
+    });
+    for (const type of ['pointercancel', 'lostpointercapture']) slider.addEventListener(type, event => {
+      if (event.pointerId === this.drag?.pointerId) this.finish();
+    });
+    slider.addEventListener('input', () => {
+      if (this.drag) return;
+      const player = getPlayer(), playing = player.playing;
+      player.pause(); player.seek(Number(slider.value), { animate: false });
+      this.resume(player, playing);
+    });
+  }
+  move(event) {
+    if (event.pointerId !== this.drag?.pointerId) return;
+    const player = this.drag.player;
+    if (player !== this.getPlayer()) { this.finish(); return; }
+    const { left, width } = this.slider.getBoundingClientRect();
+    // Match the 16px thumb so both endpoints remain reachable.
+    const ratio = Math.max(0, Math.min(1, (event.clientX - left - 8) / Math.max(1, width - 16)));
+    player.seek(Math.round(ratio * (player.trace.frames.length - 1)), { animate: false });
+  }
+  finish() {
+    if (!this.drag) return;
+    const { player, playing, pointerId } = this.drag;
+    this.drag = null;
+    if (this.slider.hasPointerCapture(pointerId)) this.slider.releasePointerCapture(pointerId);
+    this.resume(player, playing);
+  }
+  resume(player, playing) {
+    const more = player.streaming ? !player.done : player.index < player.trace.frames.length - 1;
+    if (playing && player === this.getPlayer() && more) player.play();
   }
 }

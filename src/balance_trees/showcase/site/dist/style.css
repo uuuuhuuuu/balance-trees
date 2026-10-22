@@ -166,6 +166,12 @@ textarea { resize: vertical; line-height: 1.5; }
 .timeline-row { display: flex; align-items: center; gap: 14px; }
 .timeline-row label { white-space: nowrap; }
 .timeline-row input { width: 100%; min-width: 40px; }
+#timeline { appearance: none; height: 26px; border: 0; background: transparent; touch-action: none; }
+#timeline::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--timeline-progress, 0%), var(--border) var(--timeline-progress, 0%)); }
+#timeline::-moz-range-track { height: 6px; border-radius: 3px; background: var(--border); }
+#timeline::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--accent); }
+#timeline::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border: 2px solid var(--surface); border-radius: 50%; background: var(--accent); }
+#timeline::-moz-range-thumb { width: 12px; height: 12px; border: 2px solid var(--surface); border-radius: 50%; background: var(--accent); }
 .playback-buttons { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
 .transport, .step-buttons { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 #play { display: inline-flex; gap: 8px; align-items: center; min-width: 85px; justify-content: center; }

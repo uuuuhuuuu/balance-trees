@@ -4,7 +4,7 @@ import { detectEngine } from './runtime.mjs';
 import { initialTheme, readPreference, savePreference, THEME_KEY, TUTORIAL_KEY, TUTORIAL_STEPS } from './interface.mjs';
 import { DETAIL_LIMIT } from './large-model.mjs';
 import { StreamPlayer } from './stream-player.mjs';
-import { EventTimeline } from './timeline.mjs';
+import { EventTimeline, TimelineScrubber } from './timeline.mjs';
 
 const $ = id => document.getElementById(id);
 const svgNS = 'http://www.w3.org/2000/svg';
@@ -15,7 +15,8 @@ let camera = { x: 0, y: 0, scale: 1 }, positions = new Map();
 const nodeElements = new Map(), edgeElements = new Map();
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let player = new TracePlayer(render);
-const eventTimeline = new EventTimeline($('event-history'), index => { player.pause(); player.seek(index); });
+const eventTimeline = new EventTimeline($('event-history'), index => { player.pause(); player.seek(index, { animate: false }); });
+new TimelineScrubber($('timeline'), () => player);
 let preferences;
 try { preferences = window.localStorage; } catch { /* Optional storage. */ }
 function applyTheme(theme) {
@@ -146,9 +147,10 @@ function draw(frame, animate = true) {
     paint(frame, positions, camera);
     animationId = progress < 1 ? requestAnimationFrame(tick) : null;
   }
-  animationId = requestAnimationFrame(tick);
+  if (duration === 0) tick(start);
+  else animationId = requestAnimationFrame(tick);
 }
-function render(frame, index, playing) {
+function render(frame, index, playing, options = {}) {
   if (!frame || !player.trace) return;
   const trace = player.trace, flavor = FLAVORS[trace.strategy];
   $('tree-name').textContent = flavor?.name ?? String(trace.strategy ?? 'Imported tree');
@@ -162,6 +164,7 @@ function render(frame, index, playing) {
   $('current-key').textContent = frame.key === null ? 'No key yet' : `Key ${frame.key}`;
   $('event-index').textContent = `${index + 1} / ${trace.frames.length}${player.streaming ? ' recent' : ''}`;
   $('timeline').max = trace.frames.length - 1; $('timeline').value = index;
+  $('timeline').style.setProperty('--timeline-progress', `${trace.frames.length > 1 ? index / (trace.frames.length - 1) * 100 : 0}%`);
   $('event-history').setAttribute('aria-label', player.streaming ? 'Recent snapshots: scroll and click to inspect' : 'Event history: scroll and click to inspect');
   eventTimeline.update(trace.frames, index);
   $('play-label').textContent = playing ? 'Pause' : index === trace.frames.length - 1 && (!player.streaming || player.done) ? 'Replay' : 'Play';
@@ -192,7 +195,7 @@ function render(frame, index, playing) {
   $('empty-tree').hidden = frame.nodes.length > 0;
   $('priority-legend').hidden = !frame.nodes.some(node => node.priority !== null);
   $('svg-description').textContent = `${frame.title}. ${frame.description} ${stats.nodes} nodes, height ${stats.height}.`;
-  draw(frame);
+  draw(frame, options.animate !== false);
 }
 function setInputChips(trace) {
   $('input-label').textContent = player.streaming ? `Input (first ${trace.sequence.length})` : 'Input';
@@ -307,7 +310,6 @@ $('previous').addEventListener('click', () => player.step(-1));
 $('next').addEventListener('click', () => player.step());
 $('next-rotation').addEventListener('click', () => player.nextRotation());
 $('next-insertion').addEventListener('click', () => player.nextInsertion());
-$('timeline').addEventListener('input', event => { player.pause(); player.seek(Number(event.target.value)); });
 $('speed').addEventListener('change', event => player.setDelay(Number(event.target.value)));
 function zoom(factor) {
   if (!player.frame) return;

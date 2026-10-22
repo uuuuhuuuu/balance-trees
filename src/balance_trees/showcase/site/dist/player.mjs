@@ -4,8 +4,8 @@ export class TracePlayer {
   load(trace) { this.pause(); this.trace = trace; this.index = 0; this.notify(); }
   get playing() { return this.timer !== null; }
   get frame() { return this.trace?.frames[this.index] ?? null; }
-  notify() { this.onChange(this.frame, this.index, this.playing); }
-  seek(index) { if (!this.trace) return; this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); if (this.index === this.trace.frames.length - 1) this.pause(); this.notify(); }
+  notify(options = {}) { this.onChange(this.frame, this.index, this.playing, options); }
+  seek(index, options = {}) { if (!this.trace) return; this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); if (this.index === this.trace.frames.length - 1) this.pause(); this.notify(options); }
   step(delta = 1) { this.pause(); this.seek(this.index + delta); }
   nextInsertion() {
     this.pause(); if (!this.trace) return;

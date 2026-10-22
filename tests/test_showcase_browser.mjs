@@ -146,8 +146,8 @@ test('scrollable event history renders bounded rows and seeks by click and keybo
   }
   const container = new Element(); container.firstElementChild = new Element();
   const frames = Array.from({ length: 20000 }, (_, i) => ({ title: `Event ${i}`, insertion: Math.floor(i / 4), kind: 'rotate', description: 'A rotation.' }));
-  let selected;
-  const timeline = new EventTimeline(container, index => { selected = index; timeline.update(frames, index); });
+  let selected, selections = 0;
+  const timeline = new EventTimeline(container, index => { selections++; selected = index; timeline.update(frames, index); });
   timeline.update(frames, 0);
   assert.ok(container.firstElementChild.children.length < 20);
   container.scrollTop = 44000; container.listeners.scroll();
@@ -155,6 +155,13 @@ test('scrollable event history renders bounded rows and seeks by click and keybo
   container.listeners.click({ target: row });
   assert.equal(selected, Number(row.dataset.index));
   assert.equal(container.firstElementChild.querySelector(`[data-index="${selected}"]`).attributes['aria-current'], 'step');
+  const pressed = container.firstElementChild.children[2];
+  const beforePress = selections;
+  container.listeners.pointerdown({ button: 0, target: pressed, preventDefault() {} });
+  assert.equal(selected, Number(pressed.dataset.index));
+  assert.equal(selections, beforePress + 1);
+  container.listeners.click({ target: pressed, detail: 1 });
+  assert.equal(selections, beforePress + 1);
   let prevented = false;
   container.listeners.keydown({ key: 'End', preventDefault() { prevented = true; } });
   assert.equal(selected, 19999); assert.equal(prevented, true);
@@ -196,4 +203,72 @@ test('recomputed priorities match Python exactly without storing node priorities
     assert.deepEqual(actual.stats, expected.trace.frames.at(-1).stats);
     assert.ok(actual.nodes.every(node => node.priority === null));
   }
+});
+
+class TestSlider {
+  constructor() { this.listeners = {}; this.value = '0'; this.captured = null; }
+  addEventListener(type, listener) { this.listeners[type] = listener; }
+  getBoundingClientRect() { return { left: 100, width: 216 }; }
+  focus() {}
+  setPointerCapture(id) { this.captured = id; }
+  hasPointerCapture(id) { return this.captured === id; }
+  releasePointerCapture() { this.captured = null; }
+  pointer(type, clientX, pointerId = 1) { this.listeners[type]({ button: 0, pointerId, clientX, preventDefault() {} }); }
+}
+
+test('timeline presses jump directly, dragging scrubs, and release resumes playback', async () => {
+  const { TimelineScrubber } = await import('../src/balance_trees/showcase/site/dist/timeline.mjs');
+  let lastOptions;
+  const player = new TracePlayer((frame, index, playing, options) => { lastOptions = options; });
+  player.load({ frames: Array.from({ length: 101 }, (_, index) => ({ title: String(index) })) });
+  const slider = new TestSlider(); new TimelineScrubber(slider, () => player);
+  try {
+    player.play();
+    slider.pointer('pointerdown', 268);
+    assert.equal(player.index, 80); assert.equal(player.playing, false);
+    assert.equal(lastOptions.animate, false);
+    slider.pointer('pointermove', 148); assert.equal(player.index, 20);
+    slider.pointer('pointerup', 228); assert.equal(player.index, 60);
+    assert.equal(player.playing, true); assert.equal(slider.captured, null);
+    slider.pointer('pointerdown', 1000); assert.equal(player.index, 100);
+    slider.pointer('pointerup', 1000);
+    assert.equal(player.playing, false); // Reaching the end must not restart.
+  } finally { player.pause(); }
+});
+
+test('timeline keeps paused state, handles keyboard input, and cancels a stale drag', async () => {
+  const { TimelineScrubber } = await import('../src/balance_trees/showcase/site/dist/timeline.mjs');
+  const original = new TracePlayer(), replacement = new TracePlayer();
+  original.load({ frames: Array.from({ length: 101 }, () => ({})) });
+  replacement.load({ frames: [{}] });
+  let active = original;
+  const slider = new TestSlider(); new TimelineScrubber(slider, () => active);
+  try {
+    slider.pointer('pointerdown', -100); slider.pointer('pointerup', -100);
+    assert.equal(original.index, 0); assert.equal(original.playing, false);
+    slider.value = '75'; slider.listeners.input();
+    assert.equal(original.index, 75); assert.equal(original.playing, false);
+    original.play(); slider.pointer('pointerdown', 208);
+    active = replacement; slider.pointer('pointermove', 248);
+    assert.equal(original.playing, false); assert.equal(replacement.index, 0);
+    assert.equal(slider.captured, null);
+  } finally { original.pause(); replacement.pause(); }
+});
+
+test('scrubbing the latest retained worker snapshot can resume the unfinished run', async () => {
+  const { TimelineScrubber } = await import('../src/balance_trees/showcase/site/dist/timeline.mjs');
+  const { StreamPlayer } = await import('../src/balance_trees/showcase/site/dist/stream-player.mjs');
+  const previous = globalThis.Worker;
+  globalThis.Worker = class { postMessage() {} terminate() {} };
+  let player, options;
+  try {
+    player = new StreamPlayer({}, (frame, index, playing, metadata) => { options = metadata; }, message => assert.fail(message), () => {});
+    for (let index = 0; index < 3; index++) player.worker.onmessage({ data: { frame: { title: String(index) }, running: true, done: false, ...(index === 0 ? { ready: true, preview: [], count: 5000 } : {}) } });
+    const slider = new TestSlider(); new TimelineScrubber(slider, () => player);
+    slider.pointer('pointerdown', 1000);
+    assert.equal(player.index, 2); assert.equal(player.playing, false);
+    assert.equal(options.animate, false);
+    slider.pointer('pointerup', 1000);
+    assert.equal(player.playing, true);
+  } finally { player?.dispose(); globalThis.Worker = previous; }
 });

@@ -33,8 +33,10 @@ substituting a different simulation.
 
 ## Demonstrate a run
 
-1. Choose the strategy, input family, key count, and seed; click **Build experiment**.
-2. Use **Play**, the timeline, or individual event controls. Scroll the event list
+1. Choose the strategy, input family, key count, and seed; click **Build**.
+2. Click anywhere on the timeline bar to jump instantly, or drag to scrub.
+   Playback pauses while dragging and resumes on release if it was running;
+   reaching the final event stops a detailed run. Scroll the event list
    and click any row to pause and inspect that snapshot; arrow keys, Home/End,
    and Page Up/Down also navigate the focused list. **Next rotation** stops
    after one primitive rotation; **Next insertion** stops when a key is settled.
@@ -95,8 +97,9 @@ refer to the **entire tree**, not just this window. Cached subtree sizes/heights
 are visualization metadata, separate from the metadata-free benchmark trees.
 
 The full tree needs O(n) memory; replay history is bounded to 128 recent views.
-The timeline and Back button inspect those recent views. Restart rebuilds the
-run from its original seed. Full-history JSON export and arbitrary insertion
+The timeline and Back button inspect those recent views. Resuming a large run
+continues the live simulation, rather than rebuilding it at an older snapshot.
+Restart rebuilds the run from its original seed. Full-history JSON export and arbitrary insertion
 jumps are available in detailed mode; large-run JSON export is disabled rather
 than exporting an incomplete history. The input chips show only a short preview.
 

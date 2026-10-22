@@ -28,7 +28,7 @@ export class StreamPlayer {
   }
   get playing() { return this.running; }
   get frame() { return this.trace.frames[this.index] ?? null; }
-  notify() { this.onChange(this.frame, this.index, this.playing); }
+  notify(options = {}) { this.onChange(this.frame, this.index, this.playing, options); }
   play() {
     this.browsing = false;
     if (!this.ready) { this.pendingPlay = true; this.running = true; this.notify(); return; }
@@ -36,7 +36,7 @@ export class StreamPlayer {
     this.running = true; this.worker.postMessage({ type: 'play', delay: this.delay }); this.notify();
   }
   pause() { this.running = false; this.pendingPlay = false; this.pendingTarget = null; this.worker.postMessage({ type: 'pause' }); this.notify(); }
-  seek(index) { this.browsing = true; this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); this.notify(); }
+  seek(index, options = {}) { this.browsing = true; this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); this.notify(options); }
   step(delta = 1) {
     this.pause();
     if (delta < 0 || this.index < this.trace.frames.length - 1) this.seek(this.index + delta);
