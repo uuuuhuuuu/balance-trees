@@ -64,6 +64,22 @@ The browser uses a seeded xorshift32 generator, whereas Python uses its seeded
 standard-library generator. Equal seeds do not imply equal trees across engines.
 Export an exact trace when reproducibility across hosting modes matters.
 
+## Priority-free experiments
+
+Choose **Recount root lottery**, **Window root lottery**, or **Recomputed priority**
+from the strategy list. The first two visualize temporary structural counting
+and subtree-root selection coins; the third shows the hashes recomputed for each
+priority comparison, without keeping a priority table. **Details → Recount scans**
+reports the cumulative structural work. Read the
+[algorithm plan and tradeoffs](priority-free-strategies.md) before interpreting
+these flavors as treap substitutes.
+
+Recount costs Θ(n) inspections per insertion and is intended for modest runs.
+For large runs, Fast-forward still performs every required scan; it cannot turn
+quadratic total counting work into a logarithmic-time algorithm. Worker time
+slices keep controls responsive. Cached visualization sizes are not used to
+short-circuit these counts.
+
 ## Large runs and speed
 
 Enter `1000000` in **Keys**, choose a strategy and preset, click **Build**, then
@@ -124,6 +140,9 @@ Top-level fields:
 }
 ```
 
+An optional `stats.scanned_nodes` counter records recount inspections; omit it
+for older external traces.
+
 `frames` must contain at least one frame. Each frame has:
 
 ```json
@@ -150,7 +169,7 @@ Every frame must describe a complete, acyclic BST. Depth counts edges. Global
 counters are cumulative; `insertion_rotations` resets for the next insertion.
 
 Recommended event kinds are `ready`, `begin`, `compare`, `insert`, `coin`,
-`prepare`, `rotate`, `priority`, `duplicate`, and `settled`. Emit `settled` at the
+`prepare`, `rotate`, `priority`, `scan`, `duplicate`, and `settled`. Emit `settled` at the
 end of each insertion to support insertion jumps. For a rotation add `promoted`,
 `demoted`, `middle` (key or null), and `direction` (`left` or `right`). For a
 coin add `numerator` and `denominator` as decimal strings, `purpose` (`rotate`
@@ -169,7 +188,7 @@ node tests/test_large_showcase.mjs
 ```
 
 Tests compare traced Python runs with ordinary execution, including exact
-rotation counts and random-bit consumption. Browser model tests cover all seven
+rotation counts and random-bit consumption. Browser model tests cover all registered
 strategies and input families, treap heap ordering, trace validation, CSV input,
 backward stepping, jumps, and automatic stopping. Native browser layout testing
 requires an environment where browser processes and networking are permitted.

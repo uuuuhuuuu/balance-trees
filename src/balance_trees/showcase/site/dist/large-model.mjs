@@ -1,3 +1,4 @@
+import { hashPriority, rootLottery } from './priority-free.mjs';
 // Bounded-memory reference engine for large visual runs. No history is retained.
 // Typed-array metadata accelerates display statistics; this is not benchmark code.
 import { randomGenerator } from './model.mjs';
@@ -52,7 +53,7 @@ export class LargeTree {
     if (requested * bytesPerKey > 512 * 1024 * 1024) throw new Error('This run would need more than 512 MiB of working memory. Try fewer keys.');
     this.input = createSequence(config);
     this.strategy = config.strategy; this.seed = config.seed;
-    if (!['treap', 'halving', 'constant-half', 'inverse-depth', 'none', 'paper-zig', 'paper-zigzag'].includes(this.strategy)) throw new Error('Unknown strategy.');
+    if (!['treap', 'halving', 'constant-half', 'inverse-depth', 'none', 'paper-zig', 'paper-zigzag', 'recount-root', 'window-root', 'hash-priority'].includes(this.strategy)) throw new Error('Unknown strategy.');
     const capacity = this.input.count;
     if (!Number.isSafeInteger(capacity) || capacity < 1 || capacity > 2147483647) throw new Error('Use a positive number of keys within the typed-array index range.');
     const estimatedBytes = capacity * (this.strategy === 'none' ? 36 : this.strategy === 'treap' ? 32 : 28)
@@ -73,6 +74,7 @@ export class LargeTree {
     } catch { throw new Error('Not enough browser memory for this run. Try fewer keys.'); }
     this.root = -1; this.length = 0; this.insertion = 0; this.key = null;
     this.rotations = 0; this.visits = 0; this.bits = 0; this.insertionRotations = 0;
+    this.scans = 0;
     this.totalDepth = 0; this.height = 0; this.focusId = -1;
     this.heapValid = true;
     this.minimum = -1; this.maximum = -1; this.last = -1; this.lastLower = -Infinity; this.lastUpper = Infinity;
@@ -196,6 +198,26 @@ export class LargeTree {
             if (!violation) break;
             yield* this.promote(id);
           }
+        } else if (this.strategy === 'hash-priority') {
+          const priority = hashPriority(this.key, this.seed);
+          while (this.parent[id] >= 0) {
+            this.visits++; this.focusId = id;
+            const parent = this.parent[id], other = hashPriority(this.keys[parent], this.seed);
+            const violation = priority < other || (priority === other && this.key < this.keys[parent]);
+            yield this.event('priority', `Recompute priorities at ${this.key}`, `Key hash ${priority.toString(16)}; parent hash ${other.toString(16)}. ${violation ? 'Promote the child.' : 'Heap order holds; stop.'} Values are discarded.`, { focus: this.key });
+            if (!violation) break;
+            yield* this.promote(id);
+          }
+        } else if (this.strategy === 'recount-root' || this.strategy === 'window-root') {
+          const tree = this;
+          yield* rootLottery(id, {
+            parent: id => this.parent[id] < 0 ? null : this.parent[id],
+            left: id => this.left[id] < 0 ? null : this.left[id],
+            right: id => this.right[id] < 0 ? null : this.right[id],
+            scan: function* (id) { tree.scans++; tree.focusId = id; yield tree.event('scan', `Count node ${tree.keys[id]}`, 'Temporary structural count; no stored subtree size is read.', { focus: tree.keys[id] }); },
+            choose: (...args) => tree.choose(...args),
+            promote: id => tree.promote(id),
+          }, this.strategy === 'window-root' ? 64 : Infinity);
         } else if (['halving', 'constant-half', 'inverse-depth'].includes(this.strategy)) {
           let node = id, denominator = this.strategy === 'inverse-depth' ? BigInt(depth) : 2n;
           while (this.parent[node] >= 0) {
@@ -257,7 +279,7 @@ export class LargeTree {
       windowed: this.length > nodes.length,
       heap_valid: this.priorities ? this.heapValid : null,
       stats: { nodes: this.length, height: this.height, mean_depth: this.length ? this.totalDepth / this.length : 0,
-        rotations: this.rotations, visits: this.visits, random_bits: this.bits, insertion_rotations: this.insertionRotations },
+        rotations: this.rotations, visits: this.visits, random_bits: this.bits, insertion_rotations: this.insertionRotations, scanned_nodes: this.scans },
     };
   }
 }

@@ -1,3 +1,4 @@
+import { hashPriority, rootLottery } from './priority-free.mjs';
 // Browser reference adapter. Python implementations emit this same trace schema.
 export const MAX_KEYS = 128; // Full-history traces only; larger runs use the worker.
 export const FLAVORS = {
@@ -8,6 +9,9 @@ export const FLAVORS = {
   none: { name: 'Plain BST', tag: 'No rebalancing', note: 'Follow key comparisons to an empty child and insert a leaf. Ordered input exposes how a BST can become a chain.' },
   'paper-zig': { name: 'Paper · Zig', tag: 'Geometric stop', note: 'Continue upward with probability ½. On the first other outcome, promote the current node once and stop.' },
   'paper-zigzag': { name: 'Paper · ZigZag', tag: 'Geometric stop', note: 'Continue upward with probability ¾. At the first rebalance, a straight path promotes the parent once; a bent path promotes the current node twice. Requires two ancestors.' },
+  'recount-root': { name: 'Recount root lottery', tag: 'Exact distribution', note: 'Count disjoint subtrees temporarily; toss 1/s at each ancestor, keep the highest success, and promote the new key there. Exact random-BST distribution from empty, but O(n) scan work per insertion.' },
+  'window-root': { name: 'Window root lottery', tag: 'Bounded local heuristic', note: 'Use the same lottery within 64 actual node inspections. Never use an incomplete count. Constant bounded recount work; no general logarithmic-depth guarantee.' },
+  'hash-priority': { name: 'Recomputed priority', tag: 'Keyed hash heuristic', note: 'Recompute a stable 64-bit key/seed hash for each comparison and rotate as in a treap. No priority fields or table. Hashes are not independent random priorities; balance is an empirical claim.' },
 };
 export const ORDERS = {
   increasing: 'Increasing', random: 'Random permutation', converging: 'Converging',
@@ -62,7 +66,7 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
   if (!Array.isArray(sequence) || !sequence.length || sequence.length > MAX_KEYS || sequence.some(x => !Number.isSafeInteger(x))) throw new Error('Detailed traces support 1 to 128 keys; larger runs use the streaming worker.');
   if (!Object.hasOwn(FLAVORS, strategy)) throw new Error('Unknown strategy.');
   if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295) throw new Error('Seed must be an integer from 0 to 4294967295.');
-  let root = null, insertion = 0, key = null, rotations = 0, visits = 0, bits = 0, insertionRotations = 0;
+  let root = null, insertion = 0, key = null, rotations = 0, visits = 0, bits = 0, insertionRotations = 0, scans = 0;
   const frames = [], priorities = new Map(), random = randomGenerator(seed);
   const bit = () => { bits++; return random() & 1; };
   function coin(numerator, denominator) {
@@ -92,7 +96,7 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
     frames.push({ kind, title, description, insertion, key, root: root?.key ?? null,
       nodes: nodes.sort((a, b) => a.key - b.key), heap_valid: strategy === 'treap' ? heapValid : null,
       stats: { nodes: nodes.length, height, mean_depth: nodes.length ? totalDepth / nodes.length : 0,
-        rotations, visits, random_bits: bits, insertion_rotations: insertionRotations }, ...details });
+        rotations, visits, random_bits: bits, insertion_rotations: insertionRotations, scanned_nodes: scans }, ...details });
   }
   function higher(a, b) { return priorities.get(a.key) < priorities.get(b.key) || (priorities.get(a.key) === priorities.get(b.key) && a.key < b.key); }
   function promote(node) {
@@ -113,8 +117,8 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
   function choose(node, numerator, denominator, purpose = 'rotate') {
     visits++;
     const outcome = coin(numerator, denominator);
-    const action = outcome ? purpose : purpose === 'rotate' ? 'skip rotation' : 'rebalance here';
-    capture('coin', `Coin at ${node.key}: ${action}`, `Probability to ${purpose}: ${numerator}/${denominator}. ${purpose === 'rotate' ? 'The full walk continues upward after either outcome.' : 'This policy stops at its first rebalance.'}`,
+    const action = purpose === 'select-root' ? outcome ? 'select this subtree' : 'keep the lower candidate' : outcome ? purpose : purpose === 'rotate' ? 'skip rotation' : 'rebalance here';
+    capture('coin', `Coin at ${node.key}: ${action}`, `Probability to ${purpose}: ${numerator}/${denominator}. ${purpose === 'rotate' ? 'The full walk continues upward after either outcome.' : purpose === 'select-root' ? 'Keep the highest successful ancestor, then promote the new key there.' : 'This policy stops at its first rebalance.'}`,
       { focus: node.key, numerator: String(numerator), denominator: String(denominator), outcome, purpose });
     return outcome;
   }
@@ -146,6 +150,25 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
           if (!violation) break;
           promote(leaf);
         }
+      } else if (strategy === 'hash-priority') {
+        const priority = hashPriority(leaf.key, seed);
+        while (leaf.parent) {
+          visits++;
+          const other = hashPriority(leaf.parent.key, seed);
+          const violation = priority < other || (priority === other && leaf.key < leaf.parent.key);
+          capture('priority', `Recompute priorities at ${leaf.key}`, `Key hash ${priority.toString(16)}; parent hash ${other.toString(16)}. ${violation ? 'Promote the child.' : 'Heap order holds; stop.'} Values are discarded.`, { focus: leaf.key });
+          if (!violation) break;
+          promote(leaf);
+        }
+      } else if (strategy === 'recount-root' || strategy === 'window-root') {
+        const adapter = {
+          parent: node => node.parent, left: node => node.left, right: node => node.right,
+          scan: function* (node) { scans++; capture('scan', `Count node ${node.key}`, 'Temporary structural count; no subtree size is stored.', { focus: node.key }); },
+          choose: function* (...args) { return choose(...args); },
+          promote: function* (node) { promote(node); },
+        };
+        const events = rootLottery(leaf, adapter, strategy === 'window-root' ? 64 : Infinity);
+        while (!events.next().done) { /* Events are captured by the adapter. */ }
       } else if (['halving', 'constant-half', 'inverse-depth'].includes(strategy)) {
         let node = leaf, denominator = strategy === 'constant-half' ? 2n : strategy === 'inverse-depth' ? BigInt(depth) : 2n;
         while (node.parent) {
@@ -186,6 +209,7 @@ export function validateTrace(trace) {
     for (const name of ['nodes', 'height', 'mean_depth', 'rotations', 'visits', 'random_bits', 'insertion_rotations']) {
       if (!Number.isFinite(frame.stats[name]) || frame.stats[name] < 0) throw new Error('Trace contains invalid statistics.');
     }
+    if (frame.stats.scanned_nodes !== undefined && (!Number.isFinite(frame.stats.scanned_nodes) || frame.stats.scanned_nodes < 0)) throw new Error('Trace contains invalid recount statistics.');
     if (frame.stats.nodes !== nodes.size) throw new Error('Trace node counts do not match its snapshots.');
     const stack = frame.root === null ? [] : [[frame.root, -Infinity, Infinity]], visited = new Set();
     while (stack.length) {

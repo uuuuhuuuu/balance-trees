@@ -67,6 +67,8 @@ test('the trace importer rejects cycles, disconnected nodes and bad metrics', ()
   assert.throws(() => validateTrace(disconnected));
   const badMetrics = structuredClone(trace); badMetrics.frames[0].stats.height = -1;
   assert.throws(() => validateTrace(badMetrics));
+  const badScans = structuredClone(trace); badScans.frames[0].stats.scanned_nodes = -1;
+  assert.throws(() => validateTrace(badScans));
 });
 test('player steps backward, jumps to rotations and insertions, and clamps its timeline', () => {
   const player = new TracePlayer(); player.load(simulate([1, 2, 3, 4]));
@@ -178,4 +180,20 @@ test('worker snapshots arriving after pause preserve the inspected historical ev
     runner.play(); send(4);
     assert.equal(runner.frame.title, '4'); assert.equal(runner.playing, true);
   } finally { runner?.dispose(); globalThis.Worker = previous; }
+});
+
+test('recomputed priorities match Python exactly without storing node priorities', async () => {
+  const { hashPriority } = await import('../src/balance_trees/showcase/site/dist/priority-free.mjs');
+  const keys = [-9007199254740991, -100, -1, 0, 1, 42, 9007199254740991];
+  const seeds = [0, 42, 2026];
+  const code = 'import json; from balance_trees.strategies.hashed import key_priority; from balance_trees.showcase import build_trace; keys=[-9007199254740991,-100,-1,0,1,42,9007199254740991]; print(json.dumps([{ "seed":s, "priorities":[str(key_priority(k,s)) for k in keys], "trace":build_trace(keys+[0],"hash-priority",s) } for s in [0,42,2026]]))';
+  const result = spawnSync('python', ['-c', code], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' }, maxBuffer: 5 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr);
+  for (const expected of JSON.parse(result.stdout)) {
+    assert.deepEqual(keys.map(key => hashPriority(key, expected.seed).toString()), expected.priorities);
+    const actual = simulate([...keys, 0], 'hash-priority', expected.seed).frames.at(-1);
+    assert.deepEqual(actual.nodes, expected.trace.frames.at(-1).nodes);
+    assert.deepEqual(actual.stats, expected.trace.frames.at(-1).stats);
+    assert.ok(actual.nodes.every(node => node.priority === null));
+  }
 });

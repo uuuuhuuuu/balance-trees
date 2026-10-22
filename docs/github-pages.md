@@ -27,7 +27,7 @@ to the name `main`. Pull requests and other branches are checked without
 publishing to the live site. Documentation-only changes do not trigger deployment;
 use **Run workflow** whenever you need a manual deployment.
 
-The public site contains treaps, all six BST strategies, sequence presets,
+The public site contains treaps, all nine BST strategies, sequence presets,
 CSV input/import, playback, and trace import/export. Simulation runs in each
 visitor's browser. To show an exact Python run, export a JSON trace locally and
 import it into the website. See [the showcase guide](showcase.md).

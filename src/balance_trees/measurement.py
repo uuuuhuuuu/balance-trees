@@ -28,6 +28,7 @@ def run_trial(
     flavor = TreeFlavor(strategy, seed=seed)
     rotations = visits = random_bits = insertion_depth = 0
     max_rotations = max_visits = max_random_bits = 0
+    scanned_nodes = max_scanned_nodes = 0
     distances: Counter[int] = Counter()
     for key in values:
         stats = flavor.insert(key)
@@ -37,6 +38,8 @@ def run_trial(
         rotations += stats.rotations
         visits += stats.visits
         random_bits += stats.random_bits
+        scanned_nodes += stats.scanned_nodes
+        max_scanned_nodes = max(max_scanned_nodes, stats.scanned_nodes)
         max_rotations = max(max_rotations, stats.rotations)
         max_visits = max(max_visits, stats.visits)
         max_random_bits = max(max_random_bits, stats.random_bits)
@@ -58,6 +61,8 @@ def run_trial(
             max_visits=max_visits,
             mean_random_bits=random_bits / n,
             max_random_bits=max_random_bits,
+            mean_scanned_nodes=scanned_nodes / n,
+            max_scanned_nodes=max_scanned_nodes,
         ),
         depths,
         distances,

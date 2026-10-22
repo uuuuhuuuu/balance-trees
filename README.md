@@ -10,7 +10,7 @@ are included as baselines; the halving walk is a separate experimental strategy.
 
 ## Interactive showcase
 
-Rotation Lab is a separate visual guide with treaps and all six experimental
+Rotation Lab is a separate visual guide with treaps and all nine experimental
 BST flavors. It shows search comparisons, leaf insertion, coin decisions, and
 the state before and after every primitive rotation. Play, pause, step backward,
 jump to the next rotation or insertion, pan, and zoom. The interface has dark/light
@@ -67,7 +67,7 @@ PYTHONPATH=src python -m balance_trees.demo \
   --dot benchmarks/results/trees/halving.dot \
   --graph benchmarks/results/trees/halving.svg --highlight-key 14
 
-# Compare six flavors on all seven insertion-order families.
+# Compare all registered flavors on all seven insertion-order families.
 PYTHONPATH=src python -m balance_trees.experiment \
   --sizes 64 256 1024 --trials 25 --seed 2026 \
   --output benchmarks/results/my-run --progress
@@ -97,6 +97,26 @@ python -m venv .venv
 .venv/bin/ruff check src tests
 ```
 
+## Priority-free treap experiments
+
+Three new flavors explore the insertion-cost tradeoff:
+
+- `recount-root`: exact random-BST shape distribution using temporary subtree
+  counts; pays a full linear structural scan per insertion.
+- `window-root`: the same lottery within a 64-node scan budget; bounded local
+  work, with no general logarithmic-depth guarantee.
+- `hash-priority`: recomputes stable key/seed priorities instead of storing them;
+  practical but dependent on a finite mixer and one external seed.
+
+All are available in the CLI and visualizer. No fields were added to `Node` or
+`BST`. Reports now include `Scans/ins` to expose counting work. See the
+[plan, algorithms, guarantees, and completed comparison](docs/priority-free-strategies.md).
+
+```sh
+PYTHONPATH=src python -m balance_trees.demo --strategy recount-root --trace
+PYTHONPATH=src python -m balance_trees.demo --strategy hash-priority --keys 1 10 2 9 3 8
+```
+
 ## Architecture and adding flavors
 
 ```text
@@ -108,6 +128,8 @@ src/balance_trees/
     base.py           Strategy protocol and instrumented rebalance context
     halving.py        Continue-to-root experiment
     fixed.py          Constant probability and inverse initial-depth walks
+    lottery.py        Exact transient recount and bounded local root lotteries
+    hashed.py         Stable priorities recomputed from keys and an external seed
     walk.py           Shared full upward traversal and rotation accounting
     paper.py          Geometric stopping policy and Zig / ZigZag rules
     __init__.py       CLI flavor registry (factories, not shared instances)
@@ -292,7 +314,7 @@ lazily, avoiding float underflow for very small probabilities. Runtime timings
 are deliberately excluded: work counts distinguish rebalancing from the initial
 search, instrumentation, printing, and final validation.
 
-## Which research goals does this meet?
+## Which research goals does the halving walk meet?
 
 For a fixed pre-insertion tree, let `h` be the inserted leaf's initial depth,
 `R` the number of rotations, and `V` the number of rebalancing decision sites.

@@ -79,6 +79,7 @@ class TrialAggregate:
             "mean_rotations",
             "mean_visits",
             "mean_random_bits",
+            "mean_scanned_nodes",
         ):
             values = [getattr(record, field) for record in self.records]
             summary[field] = fmean(values)
@@ -90,7 +91,12 @@ class TrialAggregate:
         summary["worst_key_mean_depth_over_log2_n"] = summary[
             "worst_key_mean_depth"
         ] / math.log2(self.n)
-        for field in ("max_rotations", "max_visits", "max_random_bits"):
+        for field in (
+            "max_rotations",
+            "max_visits",
+            "max_random_bits",
+            "max_scanned_nodes",
+        ):
             summary[field] = max(getattr(record, field) for record in self.records)
         total = sum(self.distances.values())
         summary["rotations_within_2_edges_fraction"] = (

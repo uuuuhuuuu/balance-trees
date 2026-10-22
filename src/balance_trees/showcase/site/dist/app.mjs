@@ -156,7 +156,7 @@ function render(frame, index, playing) {
   $('source-badge').textContent = trace.source === 'python' ? 'Python implementation' : trace.source === 'browser' ? 'Browser simulation' : 'Imported trace';
   $('visible-count').textContent = frame.windowed ? `${frame.nodes.length} / ${frame.stats.nodes.toLocaleString()} nodes shown` : '';
   $('strategy-note').textContent = flavor?.note ?? 'This implementation supplies its own snapshots and explanations through the common trace format.';
-  $('phase').textContent = ({ ready: 'Ready', begin: 'Search', compare: 'Compare', insert: 'Leaf placed', priority: 'Priority', coin: 'Decision', prepare: 'Before rotation', rotate: 'After rotation', settled: 'Settled', duplicate: 'Duplicate' })[frame.kind] ?? frame.kind;
+  $('phase').textContent = ({ ready: 'Ready', begin: 'Search', compare: 'Compare', insert: 'Leaf placed', priority: 'Priority', scan: 'Recount', coin: 'Decision', prepare: 'Before rotation', rotate: 'After rotation', settled: 'Settled', duplicate: 'Duplicate' })[frame.kind] ?? frame.kind;
   $('event-title').textContent = frame.title; $('event-description').textContent = frame.description;
   $('insertion-number').textContent = String(frame.insertion).padStart(2, '0');
   $('current-key').textContent = frame.key === null ? 'No key yet' : `Key ${frame.key}`;
@@ -172,13 +172,14 @@ function render(frame, index, playing) {
   if (player.streaming && trace.strategy === 'none') $('next-rotation').disabled = true;
   const stats = frame.stats;
   for (const [id, name] of [['metric-nodes', 'nodes'], ['metric-height', 'height'], ['metric-rotations', 'rotations'], ['metric-visits', 'visits'], ['metric-bits', 'random_bits'], ['metric-insertion-rotations', 'insertion_rotations']]) $(id).textContent = stats[name];
+  $('metric-scans').textContent = stats.scanned_nodes ?? 0;
   $('metric-depth').textContent = stats.mean_depth.toFixed(2);
   $('heap-row').hidden = frame.heap_valid === null;
   $('heap-status').textContent = frame.heap_valid ? 'Preserved' : 'Rebalancing';
   $('heap-icon').textContent = frame.heap_valid ? '✓' : '↻';
   $('coin-detail').hidden = frame.kind !== 'coin';
   if (frame.kind === 'coin') {
-    $('coin-purpose').textContent = frame.purpose === 'continue' ? 'CONTINUATION PROBABILITY' : 'ROTATION PROBABILITY';
+    $('coin-purpose').textContent = frame.purpose === 'continue' ? 'CONTINUATION PROBABILITY' : frame.purpose === 'select-root' ? 'ROOT SELECTION PROBABILITY' : 'ROTATION PROBABILITY';
     $('coin-probability').textContent = `${frame.numerator} / ${frame.denominator}`;
     $('coin-outcome').textContent = frame.outcome ? 'Coin outcome: yes' : 'Coin outcome: no';
   }

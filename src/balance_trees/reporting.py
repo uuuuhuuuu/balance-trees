@@ -30,6 +30,9 @@ SUMMARY_FIELDS = (
     "mean_random_bits",
     "mean_random_bits_se",
     "max_random_bits",
+    "mean_scanned_nodes",
+    "mean_scanned_nodes_se",
+    "max_scanned_nodes",
     "rotations_within_2_edges_fraction",
 )
 
@@ -64,6 +67,9 @@ def render_summary(summaries: list[dict], *, seed: int, trials: int) -> str:
         "Worst-key is max_key(mean_trial(depth)); height is mean_trial(max_depth).",
         "Work columns are per insertion, including the initial root insertion.",
         "MaxRot is an observed maximum, not a theoretical worst-case bound.",
+        "Scans/ins counts actual structural recount visits, excluding search and decisions.",
+        "Recount-root: exact root lottery with O(n) recount; window-root: 64-node cap.",
+        "Hash-priority: deterministic keyed mixer, no fresh insertion bits; no universal balance guarantee.",
         "",
     ]
     orders = dict.fromkeys(row["order"] for row in summaries)
@@ -88,6 +94,7 @@ def render_summary(summaries: list[dict], *, seed: int, trials: int) -> str:
                     f"{row['mean_rotations']:.3f}",
                     f"{row['mean_visits']:.2f}",
                     f"{row['mean_random_bits']:.2f}",
+                    f"{row['mean_scanned_nodes']:.2f}",
                     str(row["max_rotations"]),
                 ]
             )
@@ -104,6 +111,7 @@ def render_summary(summaries: list[dict], *, seed: int, trials: int) -> str:
                         "Rot/ins",
                         "Visits/ins",
                         "Bits/ins",
+                        "Scans/ins",
                         "MaxRot",
                     ],
                     rows,

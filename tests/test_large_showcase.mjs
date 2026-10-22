@@ -22,7 +22,7 @@ test('large engine matches detailed engine for every strategy and sequence famil
     const actual = finish(new LargeTree(config));
     const expected = simulate(makeSequence(order, 30, seed), strategy, seed).frames.at(-1);
     assert.deepEqual(topology(actual.nodes), topology(expected.nodes), `${strategy} / ${order} / ${seed}`);
-    for (const field of ['nodes', 'height', 'mean_depth', 'rotations', 'visits', 'random_bits']) assert.equal(actual.stats[field], expected.stats[field], `${strategy} / ${order}: ${field}`);
+    for (const field of ['nodes', 'height', 'mean_depth', 'rotations', 'visits', 'random_bits', 'scanned_nodes']) assert.equal(actual.stats[field], expected.stats[field], `${strategy} / ${order}: ${field}`);
   }
 });
 test('incremental mean depth and height match independent traversal after each rotation', () => {
@@ -114,4 +114,20 @@ test('one-million-key random treap keeps exact global metrics and a valid priori
   assert.equal(result.stats.height, independent.height);
   assert.ok(result.nodes.length <= VISIBLE_LIMIT);
   for (let id = 0; id < tree.length; id++) if (tree.parent[id] >= 0) assert.equal(tree.higher(id, tree.parent[id]), false);
+});
+
+test('worker lottery adapters count real scans and enforce the local budget', () => {
+  for (const strategy of ['recount-root', 'window-root']) {
+    const count = strategy === 'recount-root' ? 128 : 2048;
+    const tree = new LargeTree({ strategy, count, order: 'converging', seed: 2026 });
+    let previous = 0;
+    while (tree.advance()) if (tree.current.kind === 'settled') {
+      const scans = tree.scans - previous;
+      if (strategy === 'window-root') { assert.ok(scans <= 64); assert.ok(tree.insertionRotations <= 63); }
+      else assert.equal(scans, tree.insertion);
+      previous = tree.scans;
+    }
+    assert.equal(tree.snapshot().stats.nodes, count);
+    if (strategy === 'recount-root') assert.equal(tree.scans, count * (count + 1) / 2);
+  }
 });

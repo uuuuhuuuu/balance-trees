@@ -15,6 +15,18 @@ class RebalanceContext:
     inserted: Node
     bits: RandomBits
     stats: InsertionStats
+    seed: int = 0
+
+    def scan(self, node: Node) -> None:
+        """Count an actual node inspection for transient subtree reconstruction."""
+        self.stats.scanned_nodes += 1
+
+    def compare_priority(self, node: Node, priority: int, parent_priority: int) -> bool:
+        """Compare recomputed priorities; no random bits or stored node fields."""
+        if node.parent is None:
+            raise ValueError("a root has no parent priority to compare")
+        self.stats.visits += 1
+        return (priority, node.key) < (parent_priority, node.parent.key)
 
     def choose(
         self, node: Node, numerator: int, denominator: int, *, purpose: str = "rotate"

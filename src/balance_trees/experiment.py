@@ -65,6 +65,13 @@ def run_experiment(
             "paper-zig": {"continue_probability": "1/2"},
             "paper-zigzag": {"continue_probability": "3/4"},
         },
+        "priority_free": {
+            "recount-root": "bottom-up exact 1/s root lottery; transient full-tree recount",
+            "window-root": "same rule with 64 actual node inspections per insertion",
+            "hash-priority": "SplitMix64(key XOR seed), recomputed; key breaks ties; heuristic",
+        },
+        "scanned_nodes": "actual recount inspections, excluding initial BST search and coin/priority decisions; no cached subtree sizes in Python",
+        "hash_seed": "external trial rotation_seed; fixed 64-bit mixer seed, not fresh random bits per insertion",
     }
     (output / "config.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"

@@ -10,6 +10,7 @@ class InsertionStats:
     visits: int = 0
     random_bits: int = 0
     rotation_distances: list[int] = field(default_factory=list)
+    scanned_nodes: int = 0
 
     @property
     def rotations(self) -> int:
@@ -27,3 +28,5 @@ class TrialMetrics:
     max_visits: int
     mean_random_bits: float
     max_random_bits: int
+    mean_scanned_nodes: float = 0
+    max_scanned_nodes: int = 0

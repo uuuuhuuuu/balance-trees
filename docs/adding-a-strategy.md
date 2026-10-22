@@ -25,7 +25,9 @@ demo and experiment CLIs. Factories create fresh strategy objects for each trial
 Use immutable strategy configuration and keep temporary state inside `rebalance`
 to avoid accidentally carrying information across insertions.
 
-For a randomized strategy, use the supplied `context.bits` exclusively. Global
+For a randomized strategy, use the supplied `context.bits` exclusively for
+fresh random draws. A recomputed-priority strategy may use `context.seed` as
+fixed external configuration, with its assumptions documented. Global
 randomness makes replay and random-bit accounting unreliable. For a new rule
 under the paper's stopping policy, implement `apply(context, node, distance)`
 and supply it to `GeometricStop`.
@@ -40,3 +42,11 @@ middle-subtree transfers, duplicate insertions, and deterministic random streams
 Validate the complete tree after each insertion in small exhaustive tests. Test
 new algorithms' rotation limits explicitly rather than assuming they inherit
 the limits of the existing baselines.
+
+
+For structural reconstruction, call `context.scan(node)` for every actual node
+inspection. Never read measurement or visualization caches to make an algorithm
+look cheaper. `context.compare_priority(...)` records recomputed-priority
+comparisons without consuming fair bits. The showcase context observes both
+primitives. See [the priority-free strategies](priority-free-strategies.md) for
+examples sharing temporary counts without adding node fields.

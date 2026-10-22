@@ -6,6 +6,8 @@ from fractions import Fraction
 from .base import NoRebalance, RebalanceContext, Strategy
 from .fixed import ConstantWalk, InverseDepthWalk
 from .halving import HalvingWalk
+from .hashed import HashPriority
+from .lottery import RecountRoot, WindowRoot
 from .paper import GeometricStop, Zig, ZigZag
 
 STRATEGIES: dict[str, Callable[[], Strategy]] = {
@@ -15,6 +17,9 @@ STRATEGIES: dict[str, Callable[[], Strategy]] = {
     "none": NoRebalance,
     "paper-zig": GeometricStop,
     "paper-zigzag": lambda: GeometricStop(Fraction(3, 4), ZigZag()),
+    "recount-root": RecountRoot,
+    "window-root": WindowRoot,
+    "hash-priority": HashPriority,
 }
 
 __all__ = [
@@ -22,10 +27,13 @@ __all__ = [
     "ConstantWalk",
     "GeometricStop",
     "HalvingWalk",
+    "HashPriority",
     "InverseDepthWalk",
     "NoRebalance",
     "RebalanceContext",
+    "RecountRoot",
     "Strategy",
+    "WindowRoot",
     "Zig",
     "ZigZag",
 ]

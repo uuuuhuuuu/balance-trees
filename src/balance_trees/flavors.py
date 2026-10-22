@@ -20,6 +20,7 @@ class TreeFlavor:
         self.tree = tree if tree is not None else BST()
         self.strategy = strategy if strategy is not None else NoRebalance()
         self.bits = bits if bits is not None else RandomBits(seed)
+        self.seed = seed
 
     def insert(self, key: int) -> InsertionStats:
         result = self.tree.insert(key)
@@ -27,7 +28,7 @@ class TreeFlavor:
         if result.inserted:
             before = self.bits.count
             self.strategy.rebalance(
-                RebalanceContext(self.tree, result.node, self.bits, stats)
+                RebalanceContext(self.tree, result.node, self.bits, stats, self.seed)
             )
             stats.random_bits = self.bits.count - before
         return stats

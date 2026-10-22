@@ -60,6 +60,7 @@ def main() -> None:
                 str(stats.rotations),
                 str(stats.visits),
                 str(stats.random_bits),
+                str(stats.scanned_nodes),
             ]
         )
         if args.trace:
@@ -77,7 +78,17 @@ def main() -> None:
     print()
     print(
         text_table(
-            ["Step", "Key", "Inserted", "Depth", "Rotations", "Visits", "Bits"], rows
+            [
+                "Step",
+                "Key",
+                "Inserted",
+                "Depth",
+                "Rotations",
+                "Visits",
+                "Bits",
+                "Scans",
+            ],
+            rows,
         )
     )
     print("\nFinal tree:")

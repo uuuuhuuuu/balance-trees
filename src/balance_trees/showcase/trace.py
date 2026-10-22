@@ -55,6 +55,8 @@ class TraceRecorder:
         self.stats = InsertionStats(False, 0)
         self.committed_rotations = 0
         self.committed_visits = 0
+        self.committed_scans = 0
+        self.seed = 0
 
     def capture(self, kind: str, title: str, description: str, **details) -> None:
         depths = self.tree.depths()
@@ -100,6 +102,7 @@ class TraceRecorder:
                     "visits": self.committed_visits + self.stats.visits,
                     "random_bits": self.bits.count,
                     "insertion_rotations": self.stats.rotations,
+                    "scanned_nodes": self.committed_scans + self.stats.scanned_nodes,
                 },
                 **details,
             }
@@ -137,8 +140,31 @@ class TraceContext(RebalanceContext):
     """Observe strategy primitives without changing their decisions or randomness."""
 
     def __init__(self, recorder: TraceRecorder, node: Node):
-        super().__init__(recorder.tree, node, recorder.bits, recorder.stats)
+        super().__init__(
+            recorder.tree, node, recorder.bits, recorder.stats, recorder.seed
+        )
         self.recorder = recorder
+
+    def scan(self, node: Node) -> None:
+        super().scan(node)
+        self.recorder.capture(
+            "scan",
+            f"Count node {node.key}",
+            "Inspect structure for a temporary subtree count; no size is saved in the node.",
+            focus=node.key,
+        )
+
+    def compare_priority(self, node: Node, priority: int, parent_priority: int) -> bool:
+        outcome = super().compare_priority(node, priority, parent_priority)
+        self.recorder.capture(
+            "priority",
+            f"Recompute priorities at {node.key}",
+            f"Key hash {priority:016x}; parent hash {parent_priority:016x}. "
+            + ("Promote the child." if outcome else "Heap order holds; stop.")
+            + " These values are discarded, not stored in the tree.",
+            focus=node.key,
+        )
+        return outcome
 
     def choose(
         self, node: Node, numerator: int, denominator: int, *, purpose: str = "rotate"
@@ -149,6 +175,8 @@ class TraceContext(RebalanceContext):
             if outcome
             else ("skip rotation" if purpose == "rotate" else "rebalance here")
         )
+        if purpose == "select-root":
+            action = "select this subtree" if outcome else "keep the lower candidate"
         self.recorder.capture(
             "coin",
             f"Coin at {node.key}: {action}",
@@ -156,6 +184,8 @@ class TraceContext(RebalanceContext):
             + (
                 "The full walk continues upward after either outcome."
                 if purpose == "rotate"
+                else "Keep the highest successful ancestor, then promote the inserted key there."
+                if purpose == "select-root"
                 else "This policy stops at its first rebalance."
             ),
             focus=node.key,
@@ -188,6 +218,7 @@ def build_trace(values: list[int], strategy: str = "treap", seed: int = 2026) ->
     priorities = {} if strategy == "treap" else None
     priority_random = Random(seed)
     recorder = TraceRecorder(tree, bits, priorities)
+    recorder.seed = seed
     policy = STRATEGIES[strategy]() if strategy != "treap" else None
     recorder.capture(
         "ready",
@@ -287,6 +318,7 @@ def build_trace(values: list[int], strategy: str = "treap", seed: int = 2026) ->
         )
         recorder.committed_rotations += recorder.stats.rotations
         recorder.committed_visits += recorder.stats.visits
+        recorder.committed_scans += recorder.stats.scanned_nodes
         recorder.stats = InsertionStats(False, 0)
     return {
         "schema_version": 1,

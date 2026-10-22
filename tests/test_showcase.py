@@ -38,11 +38,12 @@ class ShowcaseTraceTests(unittest.TestCase):
             with self.subTest(strategy=name):
                 trace = build_trace(values, name, 2026)
                 flavor = TreeFlavor(factory(), seed=2026)
-                rotations = visits = 0
+                rotations = visits = scans = 0
                 for key in values:
                     stats = flavor.insert(key)
                     rotations += stats.rotations
                     visits += stats.visits
+                    scans += stats.scanned_nodes
                 final = trace["frames"][-1]
                 actual = {}
                 for node in final["nodes"]:
@@ -59,13 +60,22 @@ class ShowcaseTraceTests(unittest.TestCase):
                 self.assertEqual(actual, expected)
                 self.assertEqual(final["stats"]["rotations"], rotations)
                 self.assertEqual(final["stats"]["visits"], visits)
+                self.assertEqual(final["stats"]["scanned_nodes"], scans)
+                self.assertEqual(
+                    sum(frame["kind"] == "scan" for frame in trace["frames"]), scans
+                )
                 self.assertEqual(final["stats"]["random_bits"], flavor.bits.count)
                 self.assertEqual(
                     sum(frame["kind"] == "rotate" for frame in trace["frames"]),
                     rotations,
                 )
                 self.assertEqual(
-                    sum(frame["kind"] == "coin" for frame in trace["frames"]), visits
+                    sum(
+                        frame["kind"]
+                        in ({"priority"} if name == "hash-priority" else {"coin"})
+                        for frame in trace["frames"]
+                    ),
+                    visits,
                 )
 
     def test_each_treap_insertion_finishes_with_valid_heap_order(self):
