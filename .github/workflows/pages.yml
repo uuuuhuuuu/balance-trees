@@ -51,6 +51,7 @@ jobs:
           node --check src/balance_trees/showcase/site/dist/model.mjs
           node --check src/balance_trees/showcase/site/dist/player.mjs
           node --check src/balance_trees/showcase/site/dist/runtime.mjs
+          node --check src/balance_trees/showcase/site/dist/timeline.mjs
           node --check src/balance_trees/showcase/site/dist/interface.mjs
           node --check src/balance_trees/showcase/site/dist/large-model.mjs
           node --check src/balance_trees/showcase/site/dist/large-worker.mjs

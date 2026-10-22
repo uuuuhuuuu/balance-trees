@@ -126,3 +126,56 @@ test('detailed fast-forward batches display events and still reaches the final s
   assert.equal(player.playing, false);
   assert.ok(shown.length < player.trace.frames.length);
 });
+
+test('scrollable event history renders bounded rows and seeks by click and keyboard', async () => {
+  const { EventTimeline } = await import('../src/balance_trees/showcase/site/dist/timeline.mjs');
+  // Small DOM substitute exercises the production widget without a browser process.
+  const document = { activeElement: null, createElement() { return new Element(); } };
+  class Element {
+    constructor() { this.children = []; this.dataset = {}; this.style = {}; this.attributes = {}; this.listeners = {}; this.ownerDocument = document; this.scrollTop = 0; this.clientHeight = 176; }
+    addEventListener(type, handler) { this.listeners[type] = handler; }
+    setAttribute(key, value) { this.attributes[key] = value; }
+    append(child) { child.parent = this; this.children.push(child); }
+    replaceChildren(...children) { this.children = []; children.forEach(child => this.append(child)); }
+    contains(node) { return this.children.includes(node); }
+    closest() { return this.dataset.index !== undefined ? this : this.parent?.closest(); }
+    querySelector(selector) { const index = selector.match(/data-index="(\d+)"/)[1]; return this.children.find(child => String(child.dataset.index) === index); }
+    focus() { document.activeElement = this; }
+  }
+  const container = new Element(); container.firstElementChild = new Element();
+  const frames = Array.from({ length: 20000 }, (_, i) => ({ title: `Event ${i}`, insertion: Math.floor(i / 4), kind: 'rotate', description: 'A rotation.' }));
+  let selected;
+  const timeline = new EventTimeline(container, index => { selected = index; timeline.update(frames, index); });
+  timeline.update(frames, 0);
+  assert.ok(container.firstElementChild.children.length < 20);
+  container.scrollTop = 44000; container.listeners.scroll();
+  const row = container.firstElementChild.children[3];
+  container.listeners.click({ target: row });
+  assert.equal(selected, Number(row.dataset.index));
+  assert.equal(container.firstElementChild.querySelector(`[data-index="${selected}"]`).attributes['aria-current'], 'step');
+  let prevented = false;
+  container.listeners.keydown({ key: 'End', preventDefault() { prevented = true; } });
+  assert.equal(selected, 19999); assert.equal(prevented, true);
+  assert.equal(Number(document.activeElement.dataset.index), 19999);
+  assert.ok(container.firstElementChild.children.length < 20);
+  container.listeners.keydown({ key: 'Home', preventDefault() {} });
+  assert.equal(selected, 0); assert.equal(container.scrollTop, 0);
+});
+
+test('worker snapshots arriving after pause preserve the inspected historical event', async () => {
+  const { StreamPlayer } = await import('../src/balance_trees/showcase/site/dist/stream-player.mjs');
+  const previous = globalThis.Worker;
+  globalThis.Worker = class { postMessage() {} terminate() {} };
+  let runner;
+  try {
+    runner = new StreamPlayer({ strategy: 'treap', count: 5000, seed: 1 }, () => {}, message => assert.fail(message), () => {});
+    const send = (number, extra = {}) => runner.worker.onmessage({ data: { frame: { title: String(number) }, running: true, done: false, ...extra } });
+    send(0, { ready: true, preview: [], count: 5000 }); send(1); send(2);
+    runner.pause(); runner.seek(0);
+    send(3); // A frame already queued by the worker before it received pause.
+    assert.equal(runner.frame.title, '0'); assert.equal(runner.playing, false);
+    assert.equal(runner.trace.frames.at(-1).title, '3');
+    runner.play(); send(4);
+    assert.equal(runner.frame.title, '4'); assert.equal(runner.playing, true);
+  } finally { runner?.dispose(); globalThis.Worker = previous; }
+});

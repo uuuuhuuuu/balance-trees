@@ -4,6 +4,7 @@ import { detectEngine } from './runtime.mjs';
 import { initialTheme, readPreference, savePreference, THEME_KEY, TUTORIAL_KEY, TUTORIAL_STEPS } from './interface.mjs';
 import { DETAIL_LIMIT } from './large-model.mjs';
 import { StreamPlayer } from './stream-player.mjs';
+import { EventTimeline } from './timeline.mjs';
 
 const $ = id => document.getElementById(id);
 const svgNS = 'http://www.w3.org/2000/svg';
@@ -14,6 +15,7 @@ let camera = { x: 0, y: 0, scale: 1 }, positions = new Map();
 const nodeElements = new Map(), edgeElements = new Map();
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let player = new TracePlayer(render);
+const eventTimeline = new EventTimeline($('event-history'), index => { player.pause(); player.seek(index); });
 let preferences;
 try { preferences = window.localStorage; } catch { /* Optional storage. */ }
 function applyTheme(theme) {
@@ -160,6 +162,8 @@ function render(frame, index, playing) {
   $('current-key').textContent = frame.key === null ? 'No key yet' : `Key ${frame.key}`;
   $('event-index').textContent = `${index + 1} / ${trace.frames.length}${player.streaming ? ' recent' : ''}`;
   $('timeline').max = trace.frames.length - 1; $('timeline').value = index;
+  $('event-history').setAttribute('aria-label', player.streaming ? 'Recent snapshots: scroll and click to inspect' : 'Event history: scroll and click to inspect');
+  eventTimeline.update(trace.frames, index);
   $('play-label').textContent = playing ? 'Pause' : index === trace.frames.length - 1 && (!player.streaming || player.done) ? 'Replay' : 'Play';
   $('play-symbol').textContent = playing ? 'Ⅱ' : '▶';
   $('play').setAttribute('aria-label', playing ? 'Pause animation' : 'Play animation');

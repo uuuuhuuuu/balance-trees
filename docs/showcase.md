@@ -34,9 +34,12 @@ substituting a different simulation.
 ## Demonstrate a run
 
 1. Choose the strategy, input family, key count, and seed; click **Build experiment**.
-2. Use **Play**, the timeline, or individual event controls. **Next rotation** stops
+2. Use **Play**, the timeline, or individual event controls. Scroll the event list
+   and click any row to pause and inspect that snapshot; arrow keys, Home/End,
+   and Page Up/Down also navigate the focused list. **Next rotation** stops
    after one primitive rotation; **Next insertion** stops when a key is settled.
-3. Watch left/right edges, promotion and demotion colors, and the explanation.
+3. Watch left/right edges and the explanation. Cyan marks focus, orange marks
+   promotion, pink marks demotion, and dashed violet marks the middle subtree.
    The frame before a rotation identifies the involved nodes and middle subtree.
 4. Click an input key to jump to that insertion. Drag the canvas to pan, use
    the zoom controls, and click **Fit** to restore automatic fitting.

@@ -70,6 +70,7 @@
           <span><i class="legend-dot active"></i>Focus</span>
           <span><i class="legend-dot promoted"></i>Promoted</span>
           <span><i class="legend-dot demoted"></i>Demoted</span>
+          <span><i class="legend-dot middle"></i>Middle subtree</span>
           <span id="priority-legend" class="muted">p = priority</span>
         </div>
         <div class="metrics">
@@ -84,6 +85,7 @@
           <label for="timeline">Event <span id="event-index">1 / 1</span></label>
           <input id="timeline" type="range" min="0" max="0" value="0" aria-label="Event timeline">
         </div>
+        <div id="event-history" class="event-history" role="region" aria-label="Event history: scroll and click to inspect an event" tabindex="0"><div class="event-history-items"></div></div>
         <div class="playback-buttons">
           <div class="transport">
             <button id="restart" aria-label="Restart from first event" title="Restart">↶</button>

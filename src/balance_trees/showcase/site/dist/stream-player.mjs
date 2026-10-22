@@ -4,16 +4,18 @@ export class StreamPlayer {
     this.config = config; this.onChange = onChange; this.onError = onError;
     this.delay = 650; this.running = false; this.done = false; this.index = 0;
     this.streaming = true; this.workerBusy = false;
+    this.browsing = false;
     this.ready = false; this.pendingPlay = false; this.pendingTarget = null;
     this.trace = { strategy: config.strategy, seed: config.seed, source: 'browser', frames: [], sequence: [], total_count: config.count ?? 0 };
     this.worker = new Worker(new URL('./large-worker.mjs', import.meta.url), { type: 'module' });
     this.worker.onmessage = ({ data }) => {
       if (data.type === 'error') { this.running = false; this.workerBusy = false; onError(data.message); this.notify(); return; }
       if (data.ready) { this.ready = true; this.trace.sequence = data.preview; this.trace.total_count = data.count; }
-      this.running = data.running; this.done = data.done; this.workerBusy = false;
+      const selected = this.browsing ? this.frame : null;
+      this.running = this.browsing ? false : data.running; this.done = data.done; this.workerBusy = false;
       this.trace.frames.push(data.frame);
       if (this.trace.frames.length > 128) this.trace.frames.shift();
-      this.index = this.trace.frames.length - 1;
+      this.index = selected ? Math.max(0, this.trace.frames.indexOf(selected)) : this.trace.frames.length - 1;
       if (data.ready) {
         onReady(this);
         if (this.pendingPlay) { this.pendingPlay = false; this.play(); }
@@ -28,18 +30,20 @@ export class StreamPlayer {
   get frame() { return this.trace.frames[this.index] ?? null; }
   notify() { this.onChange(this.frame, this.index, this.playing); }
   play() {
+    this.browsing = false;
     if (!this.ready) { this.pendingPlay = true; this.running = true; this.notify(); return; }
     if (this.done && this.index === this.trace.frames.length - 1) return;
     this.running = true; this.worker.postMessage({ type: 'play', delay: this.delay }); this.notify();
   }
   pause() { this.running = false; this.pendingPlay = false; this.pendingTarget = null; this.worker.postMessage({ type: 'pause' }); this.notify(); }
-  seek(index) { this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); this.notify(); }
+  seek(index) { this.browsing = true; this.index = Math.max(0, Math.min(this.trace.frames.length - 1, index)); this.notify(); }
   step(delta = 1) {
     this.pause();
     if (delta < 0 || this.index < this.trace.frames.length - 1) this.seek(this.index + delta);
     else this.request('event');
   }
   request(target) {
+    this.browsing = false;
     if (!this.ready) { this.pendingTarget = target; return; }
     if (!this.done) { this.workerBusy = true; this.worker.postMessage({ type: 'step', target }); }
   }

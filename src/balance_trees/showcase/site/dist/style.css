@@ -8,15 +8,20 @@
   --border: #d6dde7;
   --accent: #326cae;
   --on-accent: #ffffff;
-  --grid: #d9dfe7;
-  --node: #ffffff;
-  --node-border: #6f8198;
-  --focus: #d9e9fc;
-  --focus-border: #3672bb;
-  --promoted: #fff0cf;
-  --promoted-border: #a66a08;
-  --demoted: #fce0e6;
-  --demoted-border: #b04b65;
+  --canvas: #f7f9fc;
+  --node-text: #16243a;
+  --active-text: #071b2c;
+  --demoted-text: #ffffff;
+  --middle: #7c3aed;
+  --middle-border: #c4b5fd;
+  --node: #dae5f3;
+  --node-border: #69809f;
+  --focus: #22d3ee;
+  --focus-border: #087d98;
+  --promoted: #ffb020;
+  --promoted-border: #ab5a00;
+  --demoted: #c81e63;
+  --demoted-border: #881044;
   --error-bg: #fce8e8;
   --error: #9d2935;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -35,15 +40,20 @@
   --border: #39475b;
   --accent: #8cbcff;
   --on-accent: #102139;
-  --grid: #303c4e;
-  --node: #263243;
-  --node-border: #8d9fb7;
-  --focus: #244b79;
-  --focus-border: #9bc6ff;
-  --promoted: #5a4222;
-  --promoted-border: #e7bd76;
-  --demoted: #613044;
-  --demoted-border: #efa3ba;
+  --canvas: #111925;
+  --node-text: #f7faff;
+  --active-text: #071b2c;
+  --demoted-text: #240b1a;
+  --middle: #8b5cf6;
+  --middle-border: #ddd6fe;
+  --node: #33445e;
+  --node-border: #92a9cb;
+  --focus: #22d3ee;
+  --focus-border: #a5f3fc;
+  --promoted: #ffb020;
+  --promoted-border: #ffe1a3;
+  --demoted: #f43f86;
+  --demoted-border: #ffc2dc;
   --error-bg: #502b34;
   --error: #ffbbc6;
 }
@@ -58,15 +68,20 @@
     --border: #39475b;
     --accent: #8cbcff;
     --on-accent: #102139;
-    --grid: #303c4e;
-    --node: #263243;
-    --node-border: #8d9fb7;
-    --focus: #244b79;
-    --focus-border: #9bc6ff;
-    --promoted: #5a4222;
-    --promoted-border: #e7bd76;
-    --demoted: #613044;
-    --demoted-border: #efa3ba;
+    --canvas: #111925;
+    --node-text: #f7faff;
+    --active-text: #071b2c;
+    --demoted-text: #240b1a;
+    --middle: #8b5cf6;
+    --middle-border: #ddd6fe;
+    --node: #33445e;
+    --node-border: #92a9cb;
+    --focus: #22d3ee;
+    --focus-border: #a5f3fc;
+    --promoted: #ffb020;
+    --promoted-border: #ffe1a3;
+    --demoted: #f43f86;
+    --demoted-border: #ffc2dc;
     --error-bg: #502b34;
     --error: #ffbbc6;
   }
@@ -128,9 +143,7 @@ textarea { resize: vertical; line-height: 1.5; }
   overflow: hidden;
   touch-action: none;
   cursor: grab;
-  background-image: radial-gradient(var(--grid) .75px, transparent .75px);
-  background-size: 20px 20px;
-  background-position: center;
+  background: var(--canvas);
 }
 .stage:focus-visible { outline-offset: -4px; }
 .stage.dragging { cursor: grabbing; }
@@ -140,10 +153,11 @@ textarea { resize: vertical; line-height: 1.5; }
 .canvas-tools button { min-width: 36px; }
 .legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 14px; border-top: 1px solid var(--border); }
 .legend > span { display: inline-flex; align-items: center; gap: 7px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--node-border); background: var(--node); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--node-border); background: var(--node); }
 .legend-dot.active { background: var(--focus); border-color: var(--focus-border); }
 .legend-dot.promoted { background: var(--promoted); border-color: var(--promoted-border); }
 .legend-dot.demoted { background: var(--demoted); border-color: var(--demoted-border); }
+.legend-dot.middle { background: var(--middle); border-color: var(--middle-border); }
 #priority-legend { margin-left: auto; }
 .metrics { display: flex; gap: 20px; flex-wrap: wrap; border-top: 1px solid var(--border); padding: 10px 14px; background: var(--subtle); border-radius: 0 0 8px 8px; }
 .metrics > div { display: flex; gap: 8px; }
@@ -172,15 +186,19 @@ textarea { resize: vertical; line-height: 1.5; }
 .sequence-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .sequence-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .key-chip { padding: 5px 8px; min-width: 34px; }
-.key-chip.done { background: var(--focus); border-color: var(--focus-border); }
+.key-chip.done { background: var(--focus); border-color: var(--focus-border); color: var(--active-text); }
 .key-chip.current { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.tree-node circle { fill: var(--node); stroke: var(--node-border); stroke-width: 1.5; }
-.tree-node.focus circle { fill: var(--focus); stroke: var(--focus-border); stroke-width: 2; }
-.tree-node.promoted circle { fill: var(--promoted); stroke: var(--promoted-border); stroke-width: 2; }
-.tree-node.demoted circle { fill: var(--demoted); stroke: var(--demoted-border); stroke-width: 2; }
-.tree-node.middle circle { stroke: var(--promoted-border); stroke-dasharray: 3 3; }
+/* Saturated fills identify roles; thick rings and a dashed middle add cues. */
+.tree-node circle { fill: var(--node); stroke: var(--node-border); stroke-width: 2; }
+.tree-node.focus circle { fill: var(--focus); stroke: var(--focus-border); stroke-width: 3; filter: drop-shadow(0 0 5px var(--focus)); }
+.tree-node.promoted circle { fill: var(--promoted); stroke: var(--promoted-border); stroke-width: 3; filter: drop-shadow(0 0 5px var(--promoted)); }
+.tree-node.demoted circle { fill: var(--demoted); stroke: var(--demoted-border); stroke-width: 3; filter: drop-shadow(0 0 5px var(--demoted)); }
+.tree-node.middle circle { fill: var(--middle); stroke: var(--middle-border); stroke-width: 3; stroke-dasharray: 4 3; }
 .node-label, .priority-label, .tree-edge text { font-family: inherit; font-size: 14px; fill: var(--text); text-anchor: middle; }
-.node-label { dominant-baseline: central; }
+.node-label { dominant-baseline: central; fill: var(--node-text); font-weight: 600; }
+.tree-node.focus .node-label, .tree-node.promoted .node-label { fill: var(--active-text); }
+.tree-node.demoted .node-label { fill: var(--demoted-text); }
+.tree-node.middle .node-label { fill: #ffffff; }
 .priority-label, .tree-edge text { fill: var(--muted); }
 .tree-edge path { fill: none; stroke: var(--node-border); stroke-width: 1.5; }
 dialog { width: min(480px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font: inherit; }
@@ -228,3 +246,16 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
 }
+
+.event-history { height: 176px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; margin-top: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--canvas); position: relative; }
+.event-history-items { position: relative; }
+.event-entry { position: absolute; left: 0; width: 100%; height: 44px; display: flex; align-items: center; gap: 10px; padding: 6px 10px; text-align: left; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; }
+.event-entry[aria-current="step"] { background: var(--subtle); box-shadow: inset 4px 0 var(--accent); }
+.event-entry:focus-visible { outline-offset: -3px; }
+.event-entry-number { color: var(--muted); min-width: 4ch; font-variant-numeric: tabular-nums; }
+.event-entry-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.event-entry-insertion { color: var(--muted); }
+.event-marker { width: 9px; height: 9px; border-radius: 50%; background: var(--node-border); flex-shrink: 0; }
+.event-entry[data-kind="rotate"] .event-marker, .event-entry[data-kind="prepare"] .event-marker { background: var(--promoted); }
+.event-entry[data-kind="coin"] .event-marker, .event-entry[data-kind="compare"] .event-marker { background: var(--focus); }
+.event-entry[data-kind="duplicate"] .event-marker { background: var(--demoted); }
