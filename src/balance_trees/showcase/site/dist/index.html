@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A visual guide to treaps and randomized binary search trees. Play every insertion and rotation, compare strategies, and import your own sequence.">
+  <meta name="theme-color" content="#f6f5f1">
+  <meta name="rotation-lab-engine" content="auto">
+  <title>Rotation Lab — See how trees take shape</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%231c3035'/%3E%3Cpath d='M20 10L10 28M20 10L30 28' stroke='%23d4e8c8' stroke-width='2'/%3E%3Cg fill='%23d4e8c8'%3E%3Ccircle cx='20' cy='10' r='4'/%3E%3Ccircle cx='10' cy='28' r='4'/%3E%3Ccircle cx='30' cy='28' r='4'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#tree-stage">Skip to visualization</a>
+  <header class="topbar shell">
+    <a href="./" class="brand" aria-label="Rotation Lab home"><span class="brand-symbol" aria-hidden="true">⑂</span> ROTATION <span class="brand-light">LAB</span></a>
+    <nav aria-label="Main navigation"><a class="nav-active" href="#playground">Playground</a><a href="#field-guide">Field guide <span aria-hidden="true">↗</span></a><button id="present" class="subtle" type="button">Presentation mode <span aria-hidden="true">⤢</span></button></nav>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <div><p class="eyebrow"><span class="live-dot"></span> AN INTERACTIVE STUDY OF SEARCH TREES</p><h1>Watch a tree find<br class="mobile-break"> its <em>balance.</em></h1><p class="lede">Insert a key. Follow the comparisons. See exactly what a rotation changes.</p></div>
+      <div class="intro-note"><span class="small-index">01 — EXPLORE</span><p>One sequence.<br>Different rules.<br><strong>Every move, made visible.</strong></p></div>
+    </section>
+    <section class="workspace" id="playground" aria-label="Tree visualization playground">
+      <aside class="controls panel">
+        <div class="panel-heading"><span class="eyebrow">SET UP YOUR EXPERIMENT</span><span class="small-index">↗</span></div>
+        <label for="strategy">Tree strategy</label><select id="strategy"></select><p class="control-help" id="strategy-tag"></p>
+        <label for="order">Insertion sequence</label><select id="order"></select>
+        <div class="input-row"><div><label for="count">Number of keys</label><input id="count" type="number" min="1" max="64" value="16" inputmode="numeric"></div><div><label for="seed">Random seed</label><input id="seed" type="number" min="0" max="4294967295" value="2026" inputmode="numeric"></div></div>
+        <button id="generate" class="button dark" type="button">Build experiment <span aria-hidden="true">↗</span></button>
+        <div class="separator"></div>
+        <div class="label-row"><label for="sequence">Or bring your own keys</label><span class="small-index">CSV</span></div>
+        <textarea id="sequence" rows="3" spellcheck="false" placeholder="8, 4, 12, 2, 6, 10, 14" aria-describedby="sequence-help error"></textarea>
+        <p class="control-help" id="sequence-help">Comma-separated integers. Up to 64 keys; duplicates are skipped.</p>
+        <div class="button-row"><button id="use-sequence" class="button outline" type="button">Use sequence</button><button id="import-sequence" class="button outline icon-button" type="button" aria-label="Import a comma-separated sequence file" title="Import .csv or .txt">↥</button></div>
+        <input class="visually-hidden" id="sequence-file" type="file" accept=".csv,.txt,text/plain,text/csv">
+        <p id="error" class="error" role="alert" hidden></p>
+        <details class="trace-tools"><summary>Replay an implementation</summary><p class="control-help">Import a version 1 JSON trace from Python or another implementation.</p><div class="button-row"><button id="import-trace" class="button outline small" type="button">Import trace</button><button id="export-trace" class="button outline small" type="button">Export trace</button></div><input class="visually-hidden" id="trace-file" type="file" accept=".json,application/json"></details>
+      </aside>
+      <div class="visual-column">
+        <section class="tree-panel panel" aria-label="Tree canvas">
+          <div class="canvas-heading"><div><span id="tree-name" class="tree-name">Treap</span><span class="dot-divider">/</span><span id="order-name" class="muted">Increasing</span></div><span id="source-badge" class="badge source">Browser simulation</span></div>
+          <div class="stage" id="tree-stage" tabindex="0" aria-label="Animated tree. Drag to pan; use zoom buttons to change scale.">
+            <svg id="tree-svg" role="img" aria-labelledby="svg-title svg-description"><title id="svg-title">Search tree visualization</title><desc id="svg-description">Nodes are keys. Left children are smaller, right children are larger. Highlighted nodes take part in the current event.</desc><g id="viewport"><g id="edges"></g><g id="nodes"></g></g></svg>
+            <div id="empty-tree" class="empty-tree"><span class="empty-symbol" aria-hidden="true">⑂</span><strong>Every tree starts here.</strong><span>Press play to follow the first insertion.</span></div>
+            <div class="canvas-tools"><button type="button" id="zoom-out" aria-label="Zoom out">−</button><button type="button" id="fit" title="Fit tree to canvas">Fit</button><button type="button" id="zoom-in" aria-label="Zoom in">+</button></div>
+            <span class="canvas-hint">DRAG TO PAN · ZOOM TO EXPLORE</span>
+          </div>
+          <div class="legend"><span><i class="legend-dot standard"></i>Key</span><span><i class="legend-dot active"></i>Current focus</span><span><i class="legend-dot promoted"></i>Promoted</span><span><i class="legend-dot demoted"></i>Demoted</span><span id="priority-legend" class="priority-legend">p = random priority</span></div>
+          <div class="metrics"><div><span>Nodes</span><strong id="metric-nodes">0</strong></div><div><span>Tree height</span><strong id="metric-height">0</strong></div><div><span>Mean depth</span><strong id="metric-depth">0.00</strong></div><div><span>Total rotations</span><strong id="metric-rotations">0</strong></div></div>
+        </section>
+        <section class="playback panel" aria-label="Playback controls">
+          <div class="timeline-row"><label class="small-index" for="timeline">EVENT <span id="event-index">1 / 1</span></label><input id="timeline" type="range" min="0" max="0" value="0" aria-label="Event timeline"></div>
+          <div class="playback-buttons"><div class="transport"><button id="restart" class="transport-button" aria-label="Restart from first event" title="Restart">↶</button><button id="previous" class="transport-button" aria-label="Previous event" title="Previous event (left arrow)">⏮</button><button id="play" class="play-button" aria-label="Play animation"><span id="play-symbol" aria-hidden="true">▶</span><span id="play-label">Play</span></button><button id="next" class="transport-button" aria-label="Next event" title="Next event (right arrow)">⏭</button></div><div class="step-buttons"><button id="next-rotation" class="subtle" type="button">Next rotation <span aria-hidden="true">↗</span></button><button id="next-insertion" class="subtle" type="button">Next insertion <span aria-hidden="true">↗</span></button></div><label class="speed-control">Speed<select id="speed" aria-label="Playback speed"><option value="1300">0.5×</option><option value="650" selected>1×</option><option value="325">2×</option><option value="160">4×</option></select></label></div>
+        </section>
+      </div>
+      <aside class="inspector panel" aria-label="Explanation of current event">
+        <div class="panel-heading"><span class="eyebrow">FOLLOW THE LOGIC</span><span id="phase" class="badge">Ready</span></div>
+        <div class="step-heading"><span class="step-number" id="insertion-number">00</span><div><p class="small-index">CURRENT INSERTION</p><strong id="current-key">—</strong></div></div>
+        <h2 id="event-title" aria-live="polite">A tree starts with one decision</h2><p id="event-description" class="event-description">Follow the search path, insert a leaf, then watch each rotation.</p>
+        <div id="coin-detail" class="coin-detail" hidden><span id="coin-purpose">ROTATION PROBABILITY</span><strong id="coin-probability"></strong><span id="coin-outcome"></span></div>
+        <div class="invariants"><div><span class="invariant-icon">✓</span><span>BST key order</span><strong>Preserved</strong></div><div id="heap-row"><span class="invariant-icon" id="heap-icon">✓</span><span>Priority heap</span><strong id="heap-status">Preserved</strong></div></div>
+        <div class="run-details"><div><span>Ancestor decisions</span><strong id="metric-visits">0</strong></div><div><span>Logical random bits</span><strong id="metric-bits">0</strong></div><div><span>Rotations this insertion</span><strong id="metric-insertion-rotations">0</strong></div></div>
+        <div class="rule-note"><span class="small-index">THE RULE IN PLAY</span><p id="strategy-note"></p></div>
+      </aside>
+      <section class="sequence-panel panel" aria-label="Insertion sequence"><div class="sequence-heading"><span class="eyebrow">THE INPUT, IN ORDER</span><span id="sequence-progress" class="small-index">0 / 16 INSERTED</span></div><div class="sequence-chips" id="sequence-chips"></div></section>
+    </section>
+    <section class="field-guide" id="field-guide">
+      <div class="guide-heading"><p class="eyebrow">A SMALL FIELD GUIDE</p><h2>Same keys. Different shapes.</h2><p>Use the controls to make the rules visible. These are demonstrations, not proofs of expected performance.</p></div>
+      <div class="guide-grid"><article><span class="guide-number">01</span><h3>Read the path</h3><p>Smaller keys go left; larger keys go right. Every insertion first follows this rule to an empty child.</p></article><article><span class="guide-number">02</span><h3>Read the rotation</h3><p>Orange moves up, rose moves down. The middle subtree changes its parent while keeping the same sorted order.</p></article><article><span class="guide-number">03</span><h3>Try an awkward input</h3><p>Compare increasing, converging, and pairs. A rule that looks good on random keys can struggle with a structured sequence.</p></article></div>
+      <details class="implementation-note"><summary>Use this viewer with your own implementation</summary><p>Export a version 1 JSON trace with a sequence and a snapshot after each comparison, insertion, decision, and rotation. The viewer only needs nodes, child links, event explanations, and counters. Import it above to replay it with the same controls. The local Python server runs the repository’s actual strategies; static hosting uses a browser reference simulator with a different seeded random generator.</p><p>Treaps store priorities; the experimental metadata-free BSTs do not. Priority labels are scaled to [0, 1) for readability; comparisons use the full 32-bit values.</p><p>Reference: <a href="https://arxiv.org/abs/2404.08287" target="_blank" rel="noreferrer">Brodal, Bottom-up Rebalancing Binary Search Trees by Flipping a Coin ↗</a></p></details>
+    </section>
+  </main>
+  <footer class="shell footer"><span class="brand-mini">ROTATION LAB</span><span>A visual companion to experimental balance trees.</span><span>Space to play · ← → to step</span></footer>
+  <noscript>This visual guide requires JavaScript for simulation and playback.</noscript>
+</body>
+</html>

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "experimental-balance-trees"
+version = "0.1.0"
+description = "Reproducible experiments with metadata-free randomized BST rotations"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff"]
+
+[project.scripts]
+balance-tree-experiment = "balance_trees.experiment:main"
+balance-tree-demo = "balance_trees.demo:main"
+balance-tree-showcase = "balance_trees.showcase.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"balance_trees.showcase" = ["site/dist/*"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "RUF"]

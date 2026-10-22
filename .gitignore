@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.ruff_cache/
+build/
+dist/
+!src/balance_trees/showcase/site/dist/
+!src/balance_trees/showcase/site/dist/**
+src/balance_trees/showcase/site/.git/
+benchmarks/results/
+_site/
