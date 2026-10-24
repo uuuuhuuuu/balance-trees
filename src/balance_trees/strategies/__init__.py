@@ -9,6 +9,7 @@ from .halving import HalvingWalk
 from .hashed import HashPriority
 from .lottery import RecountRoot, WindowRoot
 from .paper import GeometricStop, Zig, ZigZag
+from .random_level import TreapPriority
 
 STRATEGIES: dict[str, Callable[[], Strategy]] = {
     "halving": HalvingWalk,
@@ -20,6 +21,7 @@ STRATEGIES: dict[str, Callable[[], Strategy]] = {
     "recount-root": RecountRoot,
     "window-root": WindowRoot,
     "hash-priority": HashPriority,
+    "random-level": TreapPriority,
 }
 
 __all__ = [
@@ -36,4 +38,5 @@ __all__ = [
     "WindowRoot",
     "Zig",
     "ZigZag",
+    "random-level",
 ]
