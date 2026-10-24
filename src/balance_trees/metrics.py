@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 
-
 @dataclass(slots=True)
 class InsertionStats:
     inserted: bool
@@ -11,6 +10,7 @@ class InsertionStats:
     random_bits: int = 0
     rotation_distances: list[int] = field(default_factory=list)
     scanned_nodes: int = 0
+    priority: int | None = None
 
     @property
     def rotations(self) -> int:

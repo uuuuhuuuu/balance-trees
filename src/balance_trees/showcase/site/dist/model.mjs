@@ -12,6 +12,8 @@ export const FLAVORS = {
   'recount-root': { name: 'Recount root lottery', tag: 'Exact distribution', note: 'Count disjoint subtrees temporarily; toss 1/s at each ancestor, keep the highest success, and promote the new key there. Exact random-BST distribution from empty, but O(n) scan work per insertion.' },
   'window-root': { name: 'Window root lottery', tag: 'Bounded local heuristic', note: 'Use the same lottery within 64 actual node inspections. Never use an incomplete count. Constant bounded recount work; no general logarithmic-depth guarantee.' },
   'hash-priority': { name: 'Recomputed priority', tag: 'Keyed hash heuristic', note: 'Recompute a stable 64-bit key/seed hash for each comparison and rotate as in a treap. No priority fields or table. Hashes are not independent random priorities; balance is an empirical claim.' },
+  'random-level': { name: 'Random level', tag: 'Priority-free depth heuristic', note: 'Roll a random priority, estimate a target depth from the observed priority interval, and rotate the inserted node upward to that depth.'
+},
 };
 export const ORDERS = {
   increasing: 'Increasing', random: 'Random permutation', converging: 'Converging',
