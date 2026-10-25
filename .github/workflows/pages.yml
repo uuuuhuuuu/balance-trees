@@ -57,6 +57,9 @@ jobs:
           node --check src/balance_trees/showcase/site/dist/large-model.mjs
           node --check src/balance_trees/showcase/site/dist/large-worker.mjs
           node --check src/balance_trees/showcase/site/dist/stream-player.mjs
+          node --check src/balance_trees/showcase/site/dist/strategies.mjs
+          node --check src/balance_trees/showcase/site/dist/catalog.mjs
+          node --check src/balance_trees/showcase/site/dist/layout.mjs
       - name: Test browser models and playback
         run: |
           node tests/test_showcase_browser.mjs

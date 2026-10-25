@@ -55,7 +55,7 @@ test('browser simulation is replayable from its seed', () => {
   assert.deepEqual(simulate(values, 'treap', 9), simulate(values, 'treap', 9));
 });
 test('the viewer accepts actual Python traces for every implementation', () => {
-  const result = spawnSync('python', ['-c', 'import json; from balance_trees.showcase import build_trace; from balance_trees.strategies import STRATEGIES; print(json.dumps([build_trace([8,4,12,2,6,10,14], s, 2026) for s in ["treap",*STRATEGIES]]))'], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' }, maxBuffer: 10 * 1024 * 1024 });
+  const result = spawnSync(process.env.PYTHON ?? 'python3', ['-c', 'import json; from balance_trees.showcase import build_trace; from balance_trees.strategies import STRATEGIES; print(json.dumps([build_trace([8,4,12,2,6,10,14], s, 2026) for s in ["treap",*STRATEGIES]]))'], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' }, maxBuffer: 10 * 1024 * 1024 });
   assert.equal(result.status, 0, result.stderr);
   for (const trace of JSON.parse(result.stdout)) assert.equal(validateTrace(trace), trace);
 });
@@ -194,7 +194,7 @@ test('recomputed priorities match Python exactly without storing node priorities
   const keys = [-9007199254740991, -100, -1, 0, 1, 42, 9007199254740991];
   const seeds = [0, 42, 2026];
   const code = 'import json; from balance_trees.strategies.hashed import key_priority; from balance_trees.showcase import build_trace; keys=[-9007199254740991,-100,-1,0,1,42,9007199254740991]; print(json.dumps([{ "seed":s, "priorities":[str(key_priority(k,s)) for k in keys], "trace":build_trace(keys+[0],"hash-priority",s) } for s in [0,42,2026]]))';
-  const result = spawnSync('python', ['-c', code], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' }, maxBuffer: 5 * 1024 * 1024 });
+  const result = spawnSync(process.env.PYTHON ?? 'python3', ['-c', code], { encoding: 'utf8', env: { ...process.env, PYTHONPATH: 'src' }, maxBuffer: 5 * 1024 * 1024 });
   assert.equal(result.status, 0, result.stderr);
   for (const expected of JSON.parse(result.stdout)) {
     assert.deepEqual(keys.map(key => hashPriority(key, expected.seed).toString()), expected.priorities);

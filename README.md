@@ -10,7 +10,7 @@ are included as baselines; the halving walk is a separate experimental strategy.
 
 ## Interactive showcase
 
-Rotation Lab is a separate visual guide with treaps and all nine experimental
+Rotation Lab is a separate visual guide with treaps and all ten experimental
 BST flavors. It shows search comparisons, leaf insertion, coin decisions, and
 the state before and after every primitive rotation. Play, pause, step backward,
 jump to the next rotation or insertion, pan, and zoom. The interface has dark/light
@@ -23,7 +23,7 @@ PYTHONPATH=src python -m balance_trees.showcase --port 8000
 Open `http://127.0.0.1:8000`. Choose increasing, random, converging, decreasing,
 pairs, bitonic, or runs. Paste comma-separated integers or import a `.csv` / `.txt`
 file. Signed integers and duplicates are supported. Key counts can reach millions,
-subject to browser memory. Large runs execute in a worker, display at most 96
+subject to browser memory. Large runs execute in a worker, display at most 48
 nodes around the current operation, and retain exact statistics for the whole tree.
 Choose **Fast-forward** to batch events; 10× and 100× playback are also available.
 
@@ -36,6 +36,47 @@ Export and import JSON traces to replay an exact Python run on any static host.
 
 See [the showcase guide and trace format](docs/showcase.md) for hosting,
 extension points, and exporting another implementation.
+
+### Local benchmark graphs and compact results
+
+The showcase includes two additional static pages, linked from its sidebar:
+
+- **[Benchmark graphs](src/balance_trees/showcase/site/dist/results.html)**:
+  seven workload families, seven metrics, scalable SVG graphs, error bars,
+  measurement tables, and downloads.
+- **[All results](src/balance_trees/showcase/site/dist/summary.html)**:
+  compact bullet points for every strategy/workload, plus the complete matrix.
+
+These pages contain measurements from this computer for **all ten Python
+strategies**, at **1,000, 4,000, 16,000 and 64,000 keys**, with three requested
+trials per group and seed 2026. Every group and every trial has an explicit
+status; a three-second subprocess deadline prevents a quadratic strategy from
+blocking the entire comparison. Timeouts are not plotted as completed results.
+The browser-only stored-priority treap is a visual reference, outside the ten
+registered Python strategies timed here.
+
+```sh
+# Launch the preview and both result pages (Python 3.11+).
+PYTHONPATH=src python3 -m balance_trees.showcase --port 8000
+# http://127.0.0.1:8000/results.html
+# http://127.0.0.1:8000/summary.html
+
+# Reproduce measurements in a NEW output directory, then regenerate the pages.
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 1000 4000 16000 64000 --trials 3 --seed 2026 --timeout 3 \
+  --output benchmarks/results/my-large-run
+PYTHONPATH=src python3 -m balance_trees.benchmark_report \
+  --input benchmarks/results/my-large-run \
+  --output src/balance_trees/showcase/site/dist
+
+# Build a portable static copy, including every graph and data download.
+PYTHONPATH=src python3 -m balance_trees.showcase.build --output _site
+```
+
+`summary.html` and `results.html` can also be opened directly as local files;
+the report uses relative CSS/SVG/data paths and no external services. The
+interactive tree preview needs an HTTP server for modules and workers.
+See [benchmark methodology and reproduction](docs/benchmarks.md).
 
 ### Public hosting on GitHub
 
@@ -80,6 +121,9 @@ PYTHONPATH=src python -m balance_trees.experiment \
 
 # Run the test suite.
 PYTHONPATH=src python -m unittest discover -s tests -v
+# Browser model tests use Node.js 24+.
+node tests/test_showcase_browser.mjs
+node tests/test_large_showcase.mjs
 ```
 
 Each experiment requires a **new output directory** to preserve earlier results.
@@ -99,7 +143,7 @@ python -m venv .venv
 
 ## Priority-free treap experiments
 
-Three new flavors explore the insertion-cost tradeoff:
+Four new flavors explore the insertion-cost tradeoff:
 
 - `recount-root`: exact random-BST shape distribution using temporary subtree
   counts; pays a full linear structural scan per insertion.
@@ -107,6 +151,8 @@ Three new flavors explore the insertion-cost tradeoff:
   work, with no general logarithmic-depth guarantee.
 - `hash-priority`: recomputes stable key/seed priorities instead of storing them;
   practical but dependent on a finite mixer and one external seed.
+- `random-level`: draws a 64-bit priority and chooses a depth from the previous
+  priority interval; retains only a count and two extrema outside the tree.
 
 All are available in the CLI and visualizer. No fields were added to `Node` or
 `BST`. Reports now include `Scans/ins` to expose counting work. See the
@@ -133,6 +179,8 @@ src/balance_trees/
     walk.py           Shared full upward traversal and rotation accounting
     paper.py          Geometric stopping policy and Zig / ZigZag rules
     __init__.py       CLI flavor registry (factories, not shared instances)
+    registry.py       Strategy descriptors, configurable factories, display metadata
+    random_level.py   Stateful interval-to-depth heuristic (64 logical bits/key)
   random_bits.py      Exact rational coins; counted logical fair bits
   metrics.py          Insertion and trial measurements outside the tree
   sequences.py        Seven reproducible insertion-order families
@@ -142,12 +190,16 @@ src/balance_trees/
   graphviz.py         Deterministic DOT export and SVG / PNG / PDF rendering
   reporting.py        Aligned text, Markdown, and CSV exports
   experiment.py       Experiment orchestration and CLI
+  benchmark.py        Isolated, time-bounded trials on the local computer
+  benchmark_report.py  Static bullet-point report and SVG graph generation
   demo.py             Interactive inspection through a command-line trace
   showcase/           Minimal website, tutorial, themes, detailed traces, and worker
     trace.py          Observe actual Python implementations
     site/dist/        Browser UI and playback modules
     site/dist/large-model.mjs   Typed-array engine for large visual runs
     site/dist/large-worker.mjs  Batched simulation outside the UI thread
+    site/dist/strategies.mjs    One browser policy factory used by both engines
+    site/dist/results/         Recorded measurements and standalone SVG graphs
 ```
 
 `tests/` contains standard-library `unittest` tests. Generated experiment data
@@ -180,7 +232,12 @@ inverse_depth = TreeFlavor(InverseDepthWalk(), seed=42)
 ```
 
 Add a strategy by implementing `rebalance(context)` and registering a factory
-in `strategies/__init__.py`. Use `context.promote(node, distance)` to apply and
+with a `StrategySpec` in `strategies/__init__.py`. Create it with
+`create_strategy("window-root", budget=128)` or
+`TreeFlavor.create("random-level", seed=42)`. The CLIs and benchmark discover
+registered policies automatically; their display metadata also generates the
+browser catalog. See [the extension guide](docs/adding-a-strategy.md).
+Use `context.promote(node, distance)` to apply and
 count rotations. Use `context.choose(node, numerator, denominator)` to count
 and sample a decision while making its cursor available to visual tracing.
 Neither the insertion pipeline nor the base tree needs to change. Duplicate keys
@@ -249,6 +306,10 @@ Available CLI flavors:
 | `none` | Plain BST insertion |
 | `paper-zig` | Continue with probability `1/2`; otherwise rotate once and stop |
 | `paper-zigzag` | Continue with probability `3/4`; otherwise apply the paper rule and stop |
+| `recount-root` | Exact subtree-root lotteries using transient full-tree counts |
+| `window-root` | Root lotteries within 64 structural inspections |
+| `hash-priority` | Treap-style promotion with recomputed key/seed hashes |
+| `random-level` | Draw 64 bits; choose target depth from the previous priority interval |
 
 All three full walks share the same traversal: after a successful promotion,
 move to the promoted node's new parent; after failure, move to its existing
@@ -310,8 +371,9 @@ or insertions as independent samples. One-trial errors are blank, not zero.
 
 Random-bit counts measure logical fair bits requested from a seeded Python
 PRNG, not its internal word consumption. Coins compare binary expansions
-lazily, avoiding float underflow for very small probabilities. Runtime timings
-are deliberately excluded: work counts distinguish rebalancing from the initial
+lazily, avoiding float underflow for very small probabilities. The original
+`experiment` reports exclude runtime timings; the separate `benchmark` command
+measures elapsed time. Work counts distinguish rebalancing from the initial
 search, instrumentation, printing, and final validation.
 
 ## Which research goals does the halving walk meet?

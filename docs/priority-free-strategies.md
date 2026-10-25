@@ -112,6 +112,12 @@ the leaf's original location.
 
 ## Experiment and results
 
+The current ten-strategy comparison, including the reviewed `random-level`
+policy, covers 1,000–64,000 keys on this computer with elapsed-time measurements,
+all statuses and static graph/summary pages. See [local benchmarks](benchmarks.md).
+The smaller comparison below is the earlier operation-count study and excludes
+`random-level`.
+
 Reproduce the completed **2,268 trials** (nine strategies × seven families ×
 three sizes × twelve independent seeds):
 

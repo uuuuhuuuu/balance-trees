@@ -217,7 +217,7 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 .tutorial-rule { margin-top: 18px; color: var(--muted); }
 .tutorial-rule p { margin-top: 8px; line-height: 1.7; }
 .dialog-actions { margin-top: 24px; }
-.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.visually-hidden { position: absolute !important; top: 0; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .skip { position: fixed; left: 12px; top: -100px; padding: 10px; color: var(--text); background: var(--surface); z-index: 10; }
 .skip:focus { top: 12px; }
 @media (max-width: 900px) {
@@ -265,3 +265,16 @@ dialog::backdrop { background: rgb(0 0 0 / .55); }
 .event-entry[data-kind="rotate"] .event-marker, .event-entry[data-kind="prepare"] .event-marker { background: var(--promoted); }
 .event-entry[data-kind="coin"] .event-marker, .event-entry[data-kind="compare"] .event-marker { background: var(--focus); }
 .event-entry[data-kind="duplicate"] .event-marker { background: var(--demoted); }
+#density { width: 100%; }
+.results-nav { display: grid; gap: 7px; margin: 8px 0 16px; font-size: 13px; }
+.results-nav a { color: var(--accent, #3b6eaa); }
+.preview-help { font-size: 12px; line-height: 1.5; }
+.hidden-label { fill: var(--muted); font-size: 11px; text-anchor: middle; }
+.compact-preview .priority-label { display: none; }
+.compact-preview .tree-edge text { font-size: 11px; }
+.compact-preview .node-label { font-size: 12px; }
+.compact-preview .event-history { max-height: 86px; }
+.compact-preview .sequence-chips { max-height: 52px; overflow: auto; }
+.compact-preview .stage { height: clamp(300px, calc(100dvh - 620px), 500px); }
+.compact-preview .legend, .compact-preview .metrics { padding-block: 8px; }
+.compact-preview .playback { padding-block: 10px; }

@@ -1,20 +1,8 @@
-import { hashPriority, rootLottery } from './priority-free.mjs';
+import { createStrategy } from './strategies.mjs';
 // Browser reference adapter. Python implementations emit this same trace schema.
 export const MAX_KEYS = 128; // Full-history traces only; larger runs use the worker.
-export const FLAVORS = {
-  treap: { name: 'Treap', tag: 'Priority heap', note: 'A BST by key, a min-heap by random priority. Rotate the new node upward until both orders hold. Priorities are extra balance information.' },
-  halving: { name: 'Halving walk', tag: 'Local randomized rule', note: 'Try a rotation with probability ½, then ¼, then ⅛… Continue from the current parent after either outcome. A success skips the demoted old parent.' },
-  'constant-half': { name: 'Constant ½', tag: 'Full upward walk', note: 'Try the same ½ rotation probability at every visited node. Continue to the root after success and failure. Rotation cost can grow with insertion depth.' },
-  'inverse-depth': { name: 'Inverse depth', tag: 'Depth-informed rule', note: 'Freeze the new leaf’s initial depth h, then use 1/h at every decision. Root insertion needs no coin. On sorted input, depth-one insertions rotate with certainty and create a chain.' },
-  none: { name: 'Plain BST', tag: 'No rebalancing', note: 'Follow key comparisons to an empty child and insert a leaf. Ordered input exposes how a BST can become a chain.' },
-  'paper-zig': { name: 'Paper · Zig', tag: 'Geometric stop', note: 'Continue upward with probability ½. On the first other outcome, promote the current node once and stop.' },
-  'paper-zigzag': { name: 'Paper · ZigZag', tag: 'Geometric stop', note: 'Continue upward with probability ¾. At the first rebalance, a straight path promotes the parent once; a bent path promotes the current node twice. Requires two ancestors.' },
-  'recount-root': { name: 'Recount root lottery', tag: 'Exact distribution', note: 'Count disjoint subtrees temporarily; toss 1/s at each ancestor, keep the highest success, and promote the new key there. Exact random-BST distribution from empty, but O(n) scan work per insertion.' },
-  'window-root': { name: 'Window root lottery', tag: 'Bounded local heuristic', note: 'Use the same lottery within 64 actual node inspections. Never use an incomplete count. Constant bounded recount work; no general logarithmic-depth guarantee.' },
-  'hash-priority': { name: 'Recomputed priority', tag: 'Keyed hash heuristic', note: 'Recompute a stable 64-bit key/seed hash for each comparison and rotate as in a treap. No priority fields or table. Hashes are not independent random priorities; balance is an empirical claim.' },
-  'random-level': { name: 'Random level', tag: 'Priority-free depth heuristic', note: 'Roll a random priority, estimate a target depth from the observed priority interval, and rotate the inserted node upward to that depth.'
-},
-};
+export { FLAVORS } from './catalog.mjs';
+import { FLAVORS } from './catalog.mjs';
 export const ORDERS = {
   increasing: 'Increasing', random: 'Random permutation', converging: 'Converging',
   decreasing: 'Decreasing', pairs: 'Pairs', bitonic: 'Bitonic', runs: 'Runs', custom: 'Custom sequence',
@@ -124,6 +112,15 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
       { focus: node.key, numerator: String(numerator), denominator: String(denominator), outcome, purpose });
     return outcome;
   }
+  const rebalance = createStrategy(strategy, {
+    seed, bit, key: node => node.key,
+    parent: node => node.parent, left: node => node.left, right: node => node.right,
+    higher, visit: () => visits++,
+    event: function* (kind, title, description, node) { capture(kind, title, description, { focus: node.key }); },
+    scan: function* (node) { scans++; capture('scan', `Count node ${node.key}`, 'Temporary structural count; no stored subtree sizes.', { focus: node.key }); },
+    choose: function* (...args) { return choose(...args); },
+    promote: function* (node) { promote(node); },
+  });
   capture('ready', 'A tree starts with one decision', 'Follow the search path, insert a leaf, then watch each rotation.');
   for (let index = 0; index < sequence.length; index++) {
     insertion = index + 1; key = sequence[index]; insertionRotations = 0;
@@ -144,54 +141,8 @@ export function simulate(sequence, strategy = 'treap', seed = 2026) {
       else parent.right = leaf;
       if (strategy === 'treap') { priorities.set(key, random()); bits += 32; }
       capture('insert', `Place ${key} as a leaf`, `The search ends at depth ${depth}. Now apply the selected balancing rule.`, { focus: key });
-      if (strategy === 'treap') {
-        while (leaf.parent) {
-          visits++;
-          const violation = higher(leaf, leaf.parent);
-          capture('priority', `Compare priorities: ${leaf.key} and ${leaf.parent.key}`, `Smaller priorities belong higher in this min-heap. ${violation ? 'Rotate this child up.' : 'The heap order holds; stop.'}`, { focus: leaf.key, demoted: leaf.parent.key });
-          if (!violation) break;
-          promote(leaf);
-        }
-      } else if (strategy === 'hash-priority') {
-        const priority = hashPriority(leaf.key, seed);
-        while (leaf.parent) {
-          visits++;
-          const other = hashPriority(leaf.parent.key, seed);
-          const violation = priority < other || (priority === other && leaf.key < leaf.parent.key);
-          capture('priority', `Recompute priorities at ${leaf.key}`, `Key hash ${priority.toString(16)}; parent hash ${other.toString(16)}. ${violation ? 'Promote the child.' : 'Heap order holds; stop.'} Values are discarded.`, { focus: leaf.key });
-          if (!violation) break;
-          promote(leaf);
-        }
-      } else if (strategy === 'recount-root' || strategy === 'window-root') {
-        const adapter = {
-          parent: node => node.parent, left: node => node.left, right: node => node.right,
-          scan: function* (node) { scans++; capture('scan', `Count node ${node.key}`, 'Temporary structural count; no subtree size is stored.', { focus: node.key }); },
-          choose: function* (...args) { return choose(...args); },
-          promote: function* (node) { promote(node); },
-        };
-        const events = rootLottery(leaf, adapter, strategy === 'window-root' ? 64 : Infinity);
-        while (!events.next().done) { /* Events are captured by the adapter. */ }
-      } else if (['halving', 'constant-half', 'inverse-depth'].includes(strategy)) {
-        let node = leaf, denominator = strategy === 'constant-half' ? 2n : strategy === 'inverse-depth' ? BigInt(depth) : 2n;
-        while (node.parent) {
-          if (choose(node, 1n, denominator)) promote(node);
-          node = node.parent;
-          if (!node) break;
-          if (strategy === 'halving') denominator *= 2n;
-        }
-      } else if (strategy.startsWith('paper-')) {
-        let node = leaf;
-        while (node.parent) {
-          const keepGoing = choose(node, strategy === 'paper-zig' ? 1 : 3, strategy === 'paper-zig' ? 2 : 4, 'continue');
-          if (keepGoing) { node = node.parent; continue; }
-          if (strategy === 'paper-zig') promote(node);
-          else if (node.parent.parent) {
-            if ((node.parent.left === node) === (node.parent.parent.left === node.parent)) promote(node.parent);
-            else { promote(node); promote(node); }
-          }
-          break;
-        }
-      }
+      const events = rebalance(leaf, depth);
+      while (!events.next().done) { /* Adapter captures detailed snapshots. */ }
     }
     capture('settled', `Insertion ${insertion} complete`, `${key} is in place. The tree is ready for the next key.`, { focus: key });
   }

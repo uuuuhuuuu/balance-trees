@@ -90,9 +90,16 @@ Preset sequences are generated in the worker; large CSV files are parsed there
 as well. No million-element input list is rendered into the page.
 
 Runs above 128 entries use typed-array tree storage and a Web Worker. The canvas
-shows a connected window of at most 96 nodes near the current operation; its
+shows a connected window of at most 48 nodes and eight edges of depth near the current operation; its
 visible root may be an internal node of the full tree. The toolbar reports the
-number shown. Node count, height, mean depth, rotations, and random-bit counters
+number shown. Compact layout spaces leaves and aligns single-child paths in one
+column, avoiding the wide diagonal layout of a chain. **Preview density** can
+override the automatic compact mode. `+N` labels count omitted descendants; an
+automatically smaller window (12 nodes on narrow screens, 24 on medium screens)
+keeps keys readable when a run is built. An
+ellipsis marks a collapsed subtree whose count is not yet available. Plain-BST
+fast playback fills exact subtree counts in one linear pass at completion.
+Node count, height, mean depth, rotations, and random-bit counters
 refer to the **entire tree**, not just this window. Cached subtree sizes/heights
 are visualization metadata, separate from the metadata-free benchmark trees.
 
@@ -103,6 +110,7 @@ Restart rebuilds the run from its original seed. Full-history JSON export and ar
 jumps are available in detailed mode; large-run JSON export is disabled rather
 than exporting an incomplete history. The input chips show only a short preview.
 
+Large runs select **Fast-forward** automatically; playback still starts paused.
 **10×**, **100×**, and **Fast-forward** are additional speed options. Fast-forward
 batches operations in short worker time slices and sends occasional snapshots
 so pause, rebuild, theme changes, and the rest of the interface stay responsive.
@@ -125,7 +133,9 @@ extension paths:
 - **Python strategy:** implement the normal strategy protocol and use
   `context.choose(...)` and `context.promote(...)`. `TraceContext` observes those
   primitives without changing their decisions. Register the strategy to expose
-  it to the Python trace API. Add its display label to the frontend flavor catalog.
+  it to the Python trace API. Register its display metadata in `StrategySpec`;
+  the catalog is generated from Python. Add one browser policy factory for both
+  the detailed and large engines. See [adding a strategy](adding-a-strategy.md).
 - **Independent implementation:** emit the JSON contract below and import the
   file. Unknown strategy names are displayed as imported implementations.
   The renderer does not need a matching built-in simulator.
@@ -188,6 +198,8 @@ ordering, links, cycles, node counts, and numeric statistics before playback.
 PYTHONPATH=src python -m unittest discover -s tests -v
 node tests/test_showcase_browser.mjs
 node tests/test_large_showcase.mjs
+# Optional real-browser checks: Node 24+, Chromium, and the running local server.
+node tests/test_site_browser.mjs
 ```
 
 Tests compare traced Python runs with ordinary execution, including exact
@@ -195,3 +207,11 @@ rotation counts and random-bit consumption. Browser model tests cover all regist
 strategies and input families, treap heap ordering, trace validation, CSV input,
 backward stepping, jumps, and automatic stopping. Native browser layout testing
 requires an environment where browser processes and networking are permitted.
+
+## Recorded results
+
+The sidebar links to `results.html` (graphs) and `summary.html` (compact bullet
+points and every result). These show recorded Python benchmarks, independent
+of browser playback. All SVGs, raw trials, summaries and machine/seed metadata
+are included in static builds and GitHub Pages. No benchmark runs in the browser
+or on the Pages builder. See [benchmark methodology](benchmarks.md).

@@ -3,6 +3,7 @@
 from collections import Counter
 from dataclasses import dataclass
 from statistics import fmean
+from time import perf_counter
 
 from .flavors import TreeFlavor
 from .metrics import TrialMetrics
@@ -14,6 +15,7 @@ class TrialResult:
     metrics: TrialMetrics
     depths: dict[int, int]
     rotation_distances: Counter[int]
+    elapsed_seconds: float = 0.0
 
 
 def run_trial(
@@ -30,6 +32,7 @@ def run_trial(
     max_rotations = max_visits = max_random_bits = 0
     scanned_nodes = max_scanned_nodes = 0
     distances: Counter[int] = Counter()
+    started = perf_counter()
     for key in values:
         stats = flavor.insert(key)
         if not stats.inserted:
@@ -46,6 +49,7 @@ def run_trial(
         distances.update(stats.rotation_distances)
         if check_every_insertion:
             flavor.tree.depths()
+    elapsed = perf_counter() - started
     depths = flavor.tree.depths()
     if set(depths) != set(values):
         raise AssertionError("insertion lost or introduced keys")
@@ -66,4 +70,5 @@ def run_trial(
         ),
         depths,
         distances,
+        elapsed,
     )

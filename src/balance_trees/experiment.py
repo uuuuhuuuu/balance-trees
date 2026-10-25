@@ -10,7 +10,7 @@ from .measurement import run_trial
 from .reporting import result_files, save_report
 from .sequences import ORDERS, insertion_order
 from .statistics import TrialAggregate
-from .strategies import STRATEGIES
+from .strategies import STRATEGIES, create_strategy
 
 
 def derived_seed(master: int, *parts: object) -> int:
@@ -89,7 +89,7 @@ def run_experiment(
                         rotation_seed = derived_seed(seed, "rotation", n, order, trial)
                         result = run_trial(
                             values,
-                            STRATEGIES[strategy](),
+                            create_strategy(strategy),
                             rotation_seed,
                             check_every_insertion=check_every_insertion,
                         )

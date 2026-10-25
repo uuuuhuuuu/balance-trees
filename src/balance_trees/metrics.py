@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 
+
 @dataclass(slots=True)
 class InsertionStats:
     inserted: bool

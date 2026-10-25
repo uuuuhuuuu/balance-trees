@@ -6,7 +6,7 @@ from random import Random
 from ..metrics import InsertionStats
 from ..random_bits import RandomBits
 from ..rotations import rotate_up
-from ..strategies import STRATEGIES
+from ..strategies import STRATEGIES, create_strategy
 from ..strategies.base import RebalanceContext
 from ..tree import BST, Node
 
@@ -219,7 +219,7 @@ def build_trace(values: list[int], strategy: str = "treap", seed: int = 2026) ->
     priority_random = Random(seed)
     recorder = TraceRecorder(tree, bits, priorities)
     recorder.seed = seed
-    policy = STRATEGIES[strategy]() if strategy != "treap" else None
+    policy = create_strategy(strategy) if strategy != "treap" else None
     recorder.capture(
         "ready",
         "A tree starts with one decision",

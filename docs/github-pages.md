@@ -27,7 +27,7 @@ to the name `main`. Pull requests and other branches are checked without
 publishing to the live site. Documentation-only changes do not trigger deployment;
 use **Run workflow** whenever you need a manual deployment.
 
-The public site contains treaps, all nine BST strategies, sequence presets,
+The public site contains treaps, all ten BST strategies, sequence presets,
 CSV input/import, playback, and trace import/export. Simulation runs in each
 visitor's browser. To show an exact Python run, export a JSON trace locally and
 import it into the website. See [the showcase guide](showcase.md).
@@ -45,7 +45,9 @@ Open `http://127.0.0.1:8000`. Use a fresh output directory for each build, or re
 the previously generated `_site` directory before rebuilding. It is ignored by
 Git; the workflow always builds from the committed source.
 
-Only files from `src/balance_trees/showcase/site/dist/` enter the deployment.
+Only files from `src/balance_trees/showcase/site/dist/` enter the deployment,
+including `results.html`, `summary.html`, recorded CSV/JSON measurements and SVG graphs.
+These are measurements recorded on the local computer; Pages does not rerun them.
 The build sets browser-only mode, so GitHub Pages makes no calls to the local
 Python API. Relative asset and module URLs support `/balance-trees/`, a renamed
 repository, a user site, or a custom domain without editing the source.

@@ -9,6 +9,12 @@ from .tree import BST
 class TreeFlavor:
     """A reusable insertion pipeline; adding strategies never changes BST."""
 
+    @classmethod
+    def create(cls, name: str, *, seed: int = 0, **options) -> "TreeFlavor":
+        from .strategies import create_strategy
+
+        return cls(create_strategy(name, **options), seed=seed)
+
     def __init__(
         self,
         strategy: Strategy | None = None,

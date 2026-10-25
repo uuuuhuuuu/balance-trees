@@ -131,3 +131,50 @@ test('worker lottery adapters count real scans and enforce the local budget', ()
     if (strategy === 'recount-root') assert.equal(tree.scans, count * (count + 1) / 2);
   }
 });
+
+test('compact chain snapshots bound depth and label hidden descendants', () => {
+  const tree = new LargeTree({ strategy: 'none', order: 'increasing', count: 10000, seed: 42 });
+  finish(tree);
+  tree.focusId = 0;
+  const frame = tree.snapshot(), nodes = new Map(frame.nodes.map(node => [node.key, node]));
+  const stack = [[frame.root, 0]];
+  let depth = 0;
+  while (stack.length) {
+    const [key, d] = stack.pop(), node = nodes.get(key); depth = Math.max(depth, d);
+    for (const child of [node.left, node.right]) if (child !== null) stack.push([child, d + 1]);
+  }
+  assert.ok(depth <= 8);
+  assert.equal(frame.stats.nodes, 10000);
+  const frontier = frame.nodes.find(node => node.hidden_right > 0);
+  assert.ok(frontier); assert.equal(frontier.hidden_right, 10000 - frontier.key);
+});
+
+test('compact layout keeps a one-child path in one column', async () => {
+  const { treeLayout } = await import('../src/balance_trees/showcase/site/dist/layout.mjs');
+  const frame = simulate([1, 2, 3, 4, 5], 'none', 42).frames.at(-1);
+  const points = treeLayout(frame, [1, 2, 3, 4, 5], true);
+  assert.equal(new Set([...points.values()].map(p => p.x)).size, 1);
+  assert.equal(points.get(5).y, 4 * 68);
+});
+
+test('browser factory covers the catalog and rejects missing implementations', async () => {
+  const { createStrategy, strategyNames, targetDepth } = await import('../src/balance_trees/showcase/site/dist/strategies.mjs');
+  assert.deepEqual(strategyNames().sort(), Object.keys(FLAVORS).sort());
+  assert.throws(() => createStrategy('missing', {}), /No browser implementation/);
+  assert.equal(targetDepth(50n, 100n, 200n, 2, 8), 0);
+  assert.equal(targetDepth(300n, 100n, 200n, 2, 8), 8);
+  assert.deepEqual([0n, 9n, 10n, 29n, 30n, 70n].map(p => targetDepth(p, 0n, 70n, 4, 9)), [0, 0, 1, 1, 2, 2]);
+});
+
+test('narrow-screen windows keep focus connected within twelve nodes and four levels', () => {
+  const tree = new LargeTree({ strategy: 'hash-priority', order: 'random', count: 1000, seed: 42, visibleLimit: 12, visibleDepth: 4 });
+  const frame = finish(tree), nodes = new Map(frame.nodes.map(node => [node.key, node]));
+  assert.ok(nodes.size <= 12); assert.ok(nodes.has(frame.focus));
+  const pending = [[frame.root, 0]], seen = new Set();
+  while (pending.length) {
+    const [key, depth] = pending.pop(); assert.ok(depth <= 4); seen.add(key);
+    for (const child of [nodes.get(key).left, nodes.get(key).right]) if (child !== null) pending.push([child, depth + 1]);
+  }
+  assert.equal(seen.size, nodes.size);
+  assert.equal(frame.stats.nodes, 1000);
+});

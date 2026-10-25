@@ -19,15 +19,18 @@
         <button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
         <button id="tutorial-open" type="button">Tutorial</button>
       </div>
+      <nav class="results-nav" aria-label="Lab pages"><a href="./results.html">Benchmark graphs ↗</a><a href="./summary.html">All results · compact summary ↗</a></nav>
       <label for="strategy">Strategy</label>
       <select id="strategy"></select>
       <label for="order">Sequence</label>
       <select id="order"></select>
       <div class="input-row">
-        <div><label for="count">Keys</label><input id="count" type="number" min="1" value="16" inputmode="numeric"></div>
+        <div><label for="count">Keys</label><input id="count" type="number" min="1" value="16" inputmode="numeric" list="sequence-sizes"><datalist id="sequence-sizes"><option value="1000"><option value="10000"><option value="100000"><option value="1000000"></datalist></div>
         <div><label for="seed">Seed</label><input id="seed" type="number" min="0" max="4294967295" value="2026" inputmode="numeric"></div>
       </div>
       <button id="generate" class="primary" type="button">Build</button>
+      <label for="density">Preview density</label><select id="density"><option value="auto">Automatic · compact for large runs</option><option value="compact">Compact</option><option value="detailed">Detailed</option></select>
+      <p class="muted preview-help">Large runs show a local window. +N counts hidden descendants; … marks a collapsed subtree. Metrics cover the entire tree.</p>
       <div class="separator"></div>
       <label for="sequence">Custom sequence (CSV)</label>
       <textarea id="sequence" rows="3" spellcheck="false" placeholder="8, 4, 12, 2, 6, 10, 14" aria-describedby="error"></textarea>

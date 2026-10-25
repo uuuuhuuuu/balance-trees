@@ -46,7 +46,7 @@ def main() -> None:
         and args.dot.resolve() == args.graph.resolve()
     ):
         parser.error("--dot and --graph must name different files")
-    tree = TreeFlavor(STRATEGIES[args.strategy](), seed=args.seed)
+    tree = TreeFlavor.create(args.strategy, seed=args.seed)
     rows = []
     print(f"Flavor: {args.strategy} | Seed: {args.seed}")
     for step, key in enumerate(args.keys, start=1):

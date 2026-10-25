@@ -5,7 +5,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-from balance_trees.showcase.build import ENGINE_META, build_site
+from balance_trees.showcase.build import ENGINE_META, build_site, catalog_source
 from balance_trees.showcase.server import STATIC
 
 
@@ -26,6 +26,18 @@ class AssetReferences(HTMLParser):
 
 
 class PagesBuildTests(unittest.TestCase):
+    def test_local_strategy_catalog_matches_factory_metadata(self):
+        self.assertEqual((STATIC / "catalog.mjs").read_text(), catalog_source())
+
+    def test_result_pages_and_graphs_are_self_contained(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = build_site(Path(temporary) / "website")
+            for filename in ("summary.html", "results.html"):
+                page = AssetReferences()
+                page.feed((output / filename).read_text())
+                for reference in page.links:
+                    self.assertTrue((output / reference).is_file(), reference)
+
     def test_staged_assets_resolve_under_a_github_project_path(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = build_site(Path(temporary) / "website")

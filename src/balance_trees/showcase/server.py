@@ -6,6 +6,7 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from ..strategies import strategy_factory
 from .trace import build_trace
 
 STATIC = Path(__file__).with_name("site") / "dist"
@@ -26,7 +27,14 @@ class ShowcaseHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         if self.path == "/api/config":
-            self.respond(200, {"engine": "python", "schema_version": 1})
+            self.respond(
+                200,
+                {
+                    "engine": "python",
+                    "schema_version": 1,
+                    "strategies": strategy_factory.catalog(),
+                },
+            )
         else:
             super().do_GET()
 

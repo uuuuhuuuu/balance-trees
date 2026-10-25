@@ -1,3 +1,4 @@
+import { treeLayout } from './layout.mjs';
 import { FLAVORS, ORDERS, makeSequence, parseSequence, simulate, validateTrace } from './model.mjs';
 import { TracePlayer } from './player.mjs';
 import { detectEngine } from './runtime.mjs';
@@ -63,19 +64,11 @@ function validSeed() {
   if (!$('seed').value.trim() || !Number.isInteger(seed) || seed < 0 || seed > 4294967295) throw new Error('Seed must be an integer from 0 to 4294967295.');
   return seed;
 }
+function isCompact() { return $('density').value === 'compact' || ($('density').value === 'auto' && (player.streaming || (player.trace?.sequence.length ?? 0) > 48)); }
 function layout(frame) {
-  const keys = player.streaming ? frame.nodes.map(node => node.key) : player.trace.sequence;
-  const ranks = new Map([...new Set(keys)].sort((a, b) => a - b).map((key, index) => [key, index]));
-  const nodes = new Map(frame.nodes.map(node => [node.key, node]));
-  const result = new Map(), stack = frame.root === null ? [] : [[frame.root, 0]];
-  while (stack.length) {
-    const [key, depth] = stack.pop(), node = nodes.get(key);
-    result.set(key, { x: ranks.get(key) * 76, y: depth * 90 });
-    if (node.left !== null) stack.push([node.left, depth + 1]);
-    if (node.right !== null) stack.push([node.right, depth + 1]);
-  }
-  return result;
+  return treeLayout(frame, player.streaming ? frame.nodes.map(node => node.key) : player.trace.sequence, isCompact());
 }
+$('density').addEventListener('change', () => { autoFit = true; if (player.frame) draw(player.frame, false); });
 function fittedCamera(target) {
   const width = stage.clientWidth, height = stage.clientHeight;
   if (!target.size) return { x: width / 2, y: height / 2, scale: 1 };
@@ -93,13 +86,19 @@ function syncElements(frame) {
     let group = nodeElements.get(node.key);
     if (!group) {
       group = svgElement('g', { class: 'tree-node', 'data-key': node.key });
-      group.append(svgElement('circle', { r: 23 }), svgElement('text', { class: 'node-label' }), svgElement('text', { class: 'priority-label', y: 37 }), svgElement('title'));
+      group.append(svgElement('circle', { r: 23 }), svgElement('text', { class: 'node-label' }), svgElement('text', { class: 'priority-label', y: 37 }), svgElement('title'), svgElement('text', { class: 'hidden-label', y: 39 }));
       group.children[1].textContent = node.key;
       $('nodes').append(group); nodeElements.set(node.key, group);
     }
     group.setAttribute('class', ['tree-node', frame.focus === node.key ? 'focus' : '', frame.promoted === node.key ? 'promoted' : '', frame.demoted === node.key ? 'demoted' : '', frame.middle === node.key ? 'middle' : ''].filter(Boolean).join(' '));
+    group.children[0].setAttribute('r', isCompact() ? 19 : 23);
+    const omitted = (node.hidden_left ?? 0) + (node.hidden_right ?? 0);
+    const unknown = node.hidden_left === null || node.hidden_right === null;
+    group.children[4].textContent = unknown ? '…' : omitted ? `+${omitted.toLocaleString()}` : '';
+    group.children[4].setAttribute('y', node.priority !== null && !isCompact() ? 52 : 39);
+    group.children[1].style.fontSize = String(node.key).length > 6 ? '9px' : '';
     group.children[2].textContent = node.priority === null ? '' : `p ${(node.priority / 4294967296).toFixed(3)}`;
-    group.children[3].textContent = node.priority === null ? `Key ${node.key}` : `Key ${node.key}; full priority ${node.priority}`;
+    group.children[3].textContent = `Key ${node.key}; ${unknown ? 'more' : omitted.toLocaleString()} descendants outside this view${node.priority === null ? '' : `; full priority ${node.priority}`}`;
     for (const [side, child] of [['L', node.left], ['R', node.right]]) if (child !== null) {
       const id = `${node.key}:${child}`; edgeKeys.add(id);
       if (!edgeElements.has(id)) {
@@ -127,6 +126,7 @@ function paint(frame, points, view) {
 }
 function draw(frame, animate = true) {
   if (animationId !== null) cancelAnimationFrame(animationId);
+  document.body.classList.toggle('compact-preview', isCompact());
   syncElements(frame);
   const target = layout(frame), startPoints = new Map(), targetCamera = autoFit ? fittedCamera(target) : { ...camera };
   const startCamera = { ...camera };
@@ -219,6 +219,7 @@ function load(trace, label) {
 }
 function startStream(config, autoplay = false) {
   player.pause(); player.dispose?.();
+  config = { ...config, visibleLimit: stage.clientWidth < 600 ? 12 : stage.clientWidth < 1000 ? 24 : 48, visibleDepth: stage.clientWidth < 600 ? 4 : 8 };
   autoFit = true; positions = new Map();
   orderLabel = ORDERS[config.order ?? 'custom'];
   $('export-trace').disabled = true;
@@ -233,6 +234,7 @@ function startStream(config, autoplay = false) {
       setInputChips(ready.trace);
       if (autoplay) ready.play();
     });
+  if (Number($('speed').value) > 7) $('speed').value = '0';
   player = runner; runner.setDelay(Number($('speed').value));
 }
 async function build(custom = false) {

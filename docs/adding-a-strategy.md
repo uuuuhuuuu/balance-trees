@@ -20,10 +20,42 @@ class AlwaysPromoteLeaf:
             context.promote(context.inserted, distance=0)
 ```
 
-Register `"always-leaf": AlwaysPromoteLeaf` in `STRATEGIES` to expose it to the
-demo and experiment CLIs. Factories create fresh strategy objects for each trial.
-Use immutable strategy configuration and keep temporary state inside `rebalance`
-to avoid accidentally carrying information across insertions.
+Register a descriptor in `strategies/__init__.py` to expose it to the demo,
+experiment and local benchmark CLIs:
+
+```python
+"always-leaf": StrategySpec(
+    AlwaysPromoteLeaf,
+    "Always promote leaf", "Deterministic control",
+    "Promote the inserted leaf once; no balance guarantee.",
+),
+```
+
+`StrategyFactory.register(name, spec)` also supports registrations in a custom
+driver. Duplicate names are rejected. Use `create_strategy(name, **options)`
+or `TreeFlavor.create(name, seed=2026, **options)` to obtain a new policy/tree.
+`STRATEGIES` remains an iterable of callable descriptors for existing clients.
+The factory is the shared source for creation and display metadata. Every trial
+gets a fresh policy; this is essential for `random-level`, whose count and
+priority extrema belong to one tree. Keep immutable configuration and document
+any persistent external state.
+
+For the website, implement one generator factory in `site/dist/strategies.mjs`
+with `registerStrategy(name, context => function* (node, insertionDepth) {...})`.
+Both browser engines supply adapters for `parent`, `left`, `right`, `key`,
+`choose`, `promote`, `scan`, `event`, `visit` and `bit`. Missing implementations
+fail with a descriptive error rather than quietly using plain BST insertion.
+Do not modify the insertion engines or tree renderer for a new policy.
+
+Refresh the local metadata catalog after changing a descriptor:
+
+```sh
+PYTHONPATH=src python3 -m balance_trees.showcase.build --sync-catalog
+```
+
+Static builds regenerate it automatically. The catalog parity test detects
+stale local metadata, and browser tests check that every catalog entry has a
+factory and that detailed/worker outcomes agree.
 
 For a randomized strategy, use the supplied `context.bits` exclusively for
 fresh random draws. A recomputed-priority strategy may use `context.seed` as

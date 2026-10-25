@@ -1,10 +1,11 @@
-import { hashPriority, rootLottery } from './priority-free.mjs';
+import { createStrategy } from './strategies.mjs';
 // Bounded-memory reference engine for large visual runs. No history is retained.
 // Typed-array metadata accelerates display statistics; this is not benchmark code.
 import { randomGenerator } from './model.mjs';
 
 export const DETAIL_LIMIT = 128;
-export const VISIBLE_LIMIT = 96;
+export const VISIBLE_LIMIT = 48;
+export const VISIBLE_DEPTH = 8;
 
 export function createSequence({ order, count, seed, sequence, text }) {
   if (text !== undefined) {
@@ -53,7 +54,9 @@ export class LargeTree {
     if (requested * bytesPerKey > 512 * 1024 * 1024) throw new Error('This run would need more than 512 MiB of working memory. Try fewer keys.');
     this.input = createSequence(config);
     this.strategy = config.strategy; this.seed = config.seed;
-    if (!['treap', 'halving', 'constant-half', 'inverse-depth', 'none', 'paper-zig', 'paper-zigzag', 'recount-root', 'window-root', 'hash-priority'].includes(this.strategy)) throw new Error('Unknown strategy.');
+    this.visibleLimit = config.visibleLimit ?? VISIBLE_LIMIT;
+    this.visibleDepth = config.visibleDepth ?? VISIBLE_DEPTH;
+    if (!Number.isInteger(this.visibleLimit) || this.visibleLimit < 6 || this.visibleLimit > VISIBLE_LIMIT || !Number.isInteger(this.visibleDepth) || this.visibleDepth < 1 || this.visibleDepth > VISIBLE_DEPTH) throw new Error('Invalid preview window dimensions.');
     const capacity = this.input.count;
     if (!Number.isSafeInteger(capacity) || capacity < 1 || capacity > 2147483647) throw new Error('Use a positive number of keys within the typed-array index range.');
     const estimatedBytes = capacity * (this.strategy === 'none' ? 36 : this.strategy === 'treap' ? 32 : 28)
@@ -75,11 +78,24 @@ export class LargeTree {
     this.root = -1; this.length = 0; this.insertion = 0; this.key = null;
     this.rotations = 0; this.visits = 0; this.bits = 0; this.insertionRotations = 0;
     this.scans = 0;
+    this.completeSizes = false;
     this.totalDepth = 0; this.height = 0; this.focusId = -1;
     this.heapValid = true;
     this.minimum = -1; this.maximum = -1; this.last = -1; this.lastLower = -Infinity; this.lastUpper = Infinity;
     this.random = randomGenerator(this.seed);
     this.current = this.event('ready', 'Ready', 'Play or step forward.');
+    const tree = this;
+    this.rebalance = createStrategy(this.strategy, {
+      seed: this.seed, bit: () => { this.bits++; return this.random() & 1; },
+      key: id => this.keys[id],
+      parent: id => this.parent[id] < 0 ? null : this.parent[id],
+      left: id => this.left[id] < 0 ? null : this.left[id],
+      right: id => this.right[id] < 0 ? null : this.right[id],
+      higher: (a, b) => this.higher(a, b), visit: () => this.visits++,
+      event: function* (kind, title, description, id) { tree.focusId = id; yield tree.event(kind, title, description, { focus: tree.keys[id] }); },
+      scan: function* (id) { tree.scans++; tree.focusId = id; yield tree.event('scan', `Count node ${tree.keys[id]}`, 'Temporary structural count; no stored subtree size is read.', { focus: tree.keys[id] }); },
+      choose: (...args) => this.choose(...args), promote: id => this.promote(id),
+    });
     this.iterator = this.events();
   }
   size(id) { return id < 0 ? 0 : this.sizes[id]; }
@@ -191,55 +207,7 @@ export class LargeTree {
         } else { this.refreshAncestors(parent); this.height = this.heights[this.root]; }
         if (this.priorities) { this.priorities[id] = this.random(); this.bits += 32; this.heapValid = parent < 0 || !this.higher(id, parent); }
         yield this.event('insert', `Insert ${this.key} at depth ${depth}`, fast ? 'A known search boundary locates this leaf directly.' : 'The key is now a leaf.', { focus: this.key });
-        if (this.strategy === 'treap') {
-          while (this.parent[id] >= 0) {
-            this.visits++; const p = this.parent[id], violation = this.higher(id, p);
-            yield this.event('priority', `Compare priorities at ${this.keys[id]}`, violation ? 'Promote the child.' : 'Heap order holds; stop.', { focus: this.keys[id], demoted: this.keys[p] });
-            if (!violation) break;
-            yield* this.promote(id);
-          }
-        } else if (this.strategy === 'hash-priority') {
-          const priority = hashPriority(this.key, this.seed);
-          while (this.parent[id] >= 0) {
-            this.visits++; this.focusId = id;
-            const parent = this.parent[id], other = hashPriority(this.keys[parent], this.seed);
-            const violation = priority < other || (priority === other && this.key < this.keys[parent]);
-            yield this.event('priority', `Recompute priorities at ${this.key}`, `Key hash ${priority.toString(16)}; parent hash ${other.toString(16)}. ${violation ? 'Promote the child.' : 'Heap order holds; stop.'} Values are discarded.`, { focus: this.key });
-            if (!violation) break;
-            yield* this.promote(id);
-          }
-        } else if (this.strategy === 'recount-root' || this.strategy === 'window-root') {
-          const tree = this;
-          yield* rootLottery(id, {
-            parent: id => this.parent[id] < 0 ? null : this.parent[id],
-            left: id => this.left[id] < 0 ? null : this.left[id],
-            right: id => this.right[id] < 0 ? null : this.right[id],
-            scan: function* (id) { tree.scans++; tree.focusId = id; yield tree.event('scan', `Count node ${tree.keys[id]}`, 'Temporary structural count; no stored subtree size is read.', { focus: tree.keys[id] }); },
-            choose: (...args) => tree.choose(...args),
-            promote: id => tree.promote(id),
-          }, this.strategy === 'window-root' ? 64 : Infinity);
-        } else if (['halving', 'constant-half', 'inverse-depth'].includes(this.strategy)) {
-          let node = id, denominator = this.strategy === 'inverse-depth' ? BigInt(depth) : 2n;
-          while (this.parent[node] >= 0) {
-            if (yield* this.choose(node, 1n, denominator)) yield* this.promote(node);
-            node = this.parent[node]; if (node < 0) break;
-            if (this.strategy === 'halving') denominator *= 2n;
-          }
-        } else if (this.strategy.startsWith('paper-')) {
-          let node = id;
-          while (this.parent[node] >= 0) {
-            if (yield* this.choose(node, this.strategy === 'paper-zig' ? 1 : 3, this.strategy === 'paper-zig' ? 2 : 4, 'continue')) { node = this.parent[node]; continue; }
-            if (this.strategy === 'paper-zig') yield* this.promote(node);
-            else {
-              const p = this.parent[node], g = this.parent[p];
-              if (g >= 0) {
-                if ((this.left[p] === node) === (this.left[g] === p)) yield* this.promote(p);
-                else { yield* this.promote(node); yield* this.promote(node); }
-              }
-            }
-            break;
-          }
-        }
+        yield* this.rebalance(id, depth);
       }
       yield this.event('settled', `Insertion ${this.insertion} complete`, `${this.key} is in place.`, { focus: this.key });
     }
@@ -247,26 +215,35 @@ export class LargeTree {
   advance() {
     const result = this.iterator.next();
     if (!result.done) this.current = result.value;
+    else if (this.strategy === 'none' && !this.completeSizes) {
+      // Plain BST fast insertion does not walk ancestors to maintain view sizes.
+      // Children have later insertion IDs, so one reverse pass is sufficient at
+      // completion. During playback, collapsed counts are explicitly unknown.
+      for (let id = this.length - 1; id >= 0; id--) this.sizes[id] = 1 + this.size(this.left[id]) + this.size(this.right[id]);
+      this.completeSizes = true;
+    }
     return !result.done;
   }
-  snapshot(limit = VISIBLE_LIMIT) {
+  snapshot(limit = this.visibleLimit) {
     let anchor = this.root;
     if (this.length > limit && this.focusId >= 0) {
       anchor = this.focusId;
-      for (let i = 0; i < 5 && this.parent[anchor] >= 0; i++) anchor = this.parent[anchor];
+      for (let i = 0; i < Math.min(5, this.visibleDepth, limit - 1) && this.parent[anchor] >= 0; i++) anchor = this.parent[anchor];
     }
     const selected = new Set();
     if (anchor >= 0) {
       let id = this.focusId;
-      for (let i = 0; id >= 0 && i < 6; i++, id = this.parent[id]) {
+      for (let i = 0; id >= 0 && i < Math.min(6, this.visibleDepth + 1, limit); i++, id = this.parent[id]) {
         selected.add(id); if (id === anchor) break;
       }
       selected.add(anchor);
-      const queue = [anchor];
+      const queue = [[anchor, 0]];
       for (let index = 0; index < queue.length && selected.size < limit; index++) {
-        for (const child of [this.left[queue[index]], this.right[queue[index]]]) if (child >= 0) {
+        const [current, depth] = queue[index];
+        if (this.length > limit && depth >= this.visibleDepth) continue;
+        for (const child of [this.left[current], this.right[current]]) if (child >= 0) {
           if (!selected.has(child)) selected.add(child);
-          queue.push(child); if (selected.size >= limit) break;
+          queue.push([child, depth + 1]); if (selected.size >= limit) break;
         }
       }
     }
@@ -274,6 +251,8 @@ export class LargeTree {
       left: selected.has(this.left[id]) ? this.keys[this.left[id]] : null,
       right: selected.has(this.right[id]) ? this.keys[this.right[id]] : null,
       priority: this.priorities ? this.priorities[id] : null,
+      hidden_left: this.left[id] < 0 || selected.has(this.left[id]) ? 0 : this.strategy === 'none' && !this.completeSizes ? null : this.size(this.left[id]),
+      hidden_right: this.right[id] < 0 || selected.has(this.right[id]) ? 0 : this.strategy === 'none' && !this.completeSizes ? null : this.size(this.right[id]),
     }));
     return { ...this.current, root: anchor < 0 ? null : this.keys[anchor], nodes,
       windowed: this.length > nodes.length,

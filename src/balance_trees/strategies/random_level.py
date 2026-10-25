@@ -7,7 +7,7 @@ from .base import RebalanceContext
 PRIORITY_BITS = 64
 
 
-@dataclass
+@dataclass(slots=True)
 class TreapPriority:
     """Roll a priority per insertion, then rotate it to a target depth.
 
@@ -46,9 +46,7 @@ class TreapPriority:
 
         # Smallest number of levels whose perfect tree can hold node_count nodes:
         # 1 + 2 + ... + 2**(levels - 1) >= node_count.
-        levels = 1
-        while (1 << levels) - 1 < node_count:
-            levels += 1
+        levels = max(1, node_count.bit_length())
 
         # Divide [lowest, highest] into bands whose widths are proportional to
         # 1, 2, 4, ..., matching a perfect binary tree's level capacities.
@@ -73,7 +71,16 @@ class TreapPriority:
         lowest = self.lowest_priority
         highest = self.highest_priority
 
-        # Update the running summary after choosing the target depth.
+        target = (
+            0
+            if lowest is None
+            else self.target_depth(
+                priority, lowest, highest, node_count, context.stats.insertion_depth
+            )
+        )
+
+        # Choose against the PREVIOUS interval; otherwise out-of-range cases
+        # become unreachable after incorporating this priority into the extrema.
         self.inserted_count += 1
         if lowest is None or priority < lowest:
             lowest = priority
@@ -85,22 +92,7 @@ class TreapPriority:
         context.stats.priority = priority
 
         node = context.inserted
-        target = self.target_depth(
-            priority,
-            lowest,
-            highest,
-            node_count,
-            context.stats.insertion_depth,
-        )
-
-        # Rotate upward until the node reaches its target depth.
-        while self._current_depth(node) > target:
+        # Each promotion reduces this leaf's depth by exactly one. Repeated
+        # parent walks here would add quadratic work to a long promotion.
+        for _ in range(max(0, context.stats.insertion_depth - target)):
             context.promote(node, distance=0)
-
-    @staticmethod
-    def _current_depth(node) -> int:
-        depth = 0
-        while node.parent is not None:
-            node = node.parent
-            depth += 1
-        return depth

@@ -16,12 +16,14 @@ dev = ["ruff"]
 balance-tree-experiment = "balance_trees.experiment:main"
 balance-tree-demo = "balance_trees.demo:main"
 balance-tree-showcase = "balance_trees.showcase.server:main"
+balance-tree-benchmark = "balance_trees.benchmark:main"
+balance-tree-benchmark-report = "balance_trees.benchmark_report:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"balance_trees.showcase" = ["site/dist/*"]
+"balance_trees.showcase" = ["site/dist/*", "site/dist/results/*"]
 
 [tool.ruff]
 line-length = 88

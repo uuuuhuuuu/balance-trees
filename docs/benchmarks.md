@@ -1,0 +1,118 @@
+# Local large-sequence benchmarks
+
+Open `/results.html` for graphs or `/summary.html` for the compact static website
+after launching `PYTHONPATH=src python3 -m balance_trees.showcase --port 8000`.
+Both are also readable as local files. All assets and downloads live together
+under `src/balance_trees/showcase/site/dist/` and enter the ordinary static build.
+
+The recorded matrix covers every registered Python strategy: halving,
+constant-half, inverse-depth, none, paper-zig, paper-zigzag, recount-root,
+window-root, hash-priority and random-level. The stored-priority treap is a
+browser reference, not a registered Python benchmark policy.
+
+The included run on the AMD Ryzen 5 1600X completed **232 of 280 groups**:
+**696 completed trials, 48 subprocess timeouts and 96 explicitly not-run trials**.
+At 64,000 keys, constant-half, paper-zigzag, hash-priority and random-level
+completed all seven input families within the deadline; recount-root completed
+none at that size. These are completion results under the recorded limit, not
+claims about asymptotic complexity. Every individual measurement is in the
+static pages and their CSV/JSON downloads.
+
+## Reproduce
+
+Python 3.11+ and the standard library are sufficient. Run from the repository
+root. The default profile requests 840 trials: ten strategies, seven orders,
+four sizes (1,000 / 4,000 / 16,000 / 64,000), three trial seeds. Every output
+directory must be new, so rerunning cannot erase a previous measurement.
+
+```sh
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 1000 4000 16000 64000 --trials 3 --seed 2026 --timeout 3 \
+  --output benchmarks/results/my-large-run
+PYTHONPATH=src python3 -m balance_trees.benchmark_report \
+  --input benchmarks/results/my-large-run \
+  --output src/balance_trees/showcase/site/dist
+PYTHONPATH=src python3 -m balance_trees.showcase.build --output _site
+```
+
+For longer experiments increase `--timeout`, `--trials` and/or `--sizes`.
+`--strategies` and `--orders` select subsets. Installed entry points are
+`balance-tree-benchmark` and `balance-tree-benchmark-report`.
+
+## Measurement boundaries
+
+- Each trial runs in a new subprocess, sequentially. There are no parallel timed
+  trials. A separate 32-key tree warms the interpreter before the measured tree.
+- `perf_counter()` measures the instrumented insertion loop, including search,
+  rebalancing, logical-bit counting and cost collection. Input generation,
+  startup, warmup, final structural validation, serialization and graphs are
+  excluded. This measures this Python implementation, rather than an
+  uninstrumented implementation or the optimized browser worker.
+- Every completed tree passes the existing ordering, parent-link, cycle and
+  key-set checks. Root depth is zero. Group metrics are trial means; `max_*`
+  metrics are maxima across completed trials.
+- Decisions count coin sites and heap comparisons. The deterministic target-band
+  arithmetic in `random-level` is reflected in its bits, rotations and timing;
+  it adds no coin-site or heap-comparison visits. Scans count actual transient
+  recount inspections, separately from ordinary BST search.
+- The deadline covers the whole subprocess, including startup, warmup and final
+  validation. A timeout supplies no completed runtime or tree metrics. After a
+  timeout/error, remaining trials for that strategy/order/size are explicitly
+  `not_run`. Other groups still execute, including larger sizes.
+- Graphs plot only groups with every requested trial complete. Partial metrics
+  appear in the full table and downloads with their completed-trial counts.
+  Missing points break lines and never become zeros. SVGs use log key counts
+  horizontally and `log(1 + value)` vertically to keep exact zero costs visible.
+  Whiskers show one standard error where available.
+- One input permutation per size is fixed across strategies and trials. Trial
+  seeds use the experiment's SHA-256 derivation. Standard errors measure
+  rebalancing variation conditional on that input, not all possible random
+  insertion orders or all variation in system load. Three trials are exploratory.
+- CPU model, logical CPU count, platform, interpreter, UTC timestamps, seed,
+  deadline and methodology are in `config.json`. Instrumentation, OS scheduling,
+  interpreter and other programs on this computer affect timings. Do not infer
+  general balance or complexity guarantees from the finite sample.
+
+## All outputs
+
+| Output | Contents |
+| --- | --- |
+| `trials.jsonl` | Append-only checkpoint of every attempted/not-run trial |
+| `trials.csv` | Every trial, seeds, status and all measured metrics |
+| `summary.csv` | Every strategy/order/size group, completed count, means and SEs |
+| `results.json` | Complete metadata, summaries and raw trials |
+| `config.json` | Machine and reproduction metadata |
+| `results.html` | Workload-selectable graphs and measurement tables |
+| `summary.html` | One compact card per strategy; largest completed size per workload, plus the complete matrix |
+| `results/*.svg` | Seven metrics for every workload; downloadable standalone graphs |
+
+The result pages never require external fonts, chart libraries or analytics.
+`summary.html` works without JavaScript; the graph page shows all workloads
+without JavaScript. The selector progressively filters those existing sections.
+
+Generated raw run directories in `benchmarks/results/` stay ignored. The report's
+recorded data and SVGs under `site/dist/results/` are tracked so a fresh checkout
+and GitHub Pages contain every result without rerunning machine-specific work.
+
+## Review of `random-level`
+
+The review fixed two algorithm defects and a missing browser implementation:
+
+- Target depth now uses the **previous** count/priority extrema. Updating the
+  interval first made both the strict new-minimum and new-maximum rules
+  unreachable. New minima now reach the root; new maxima stay at the inserted
+  leaf's depth. The new value enters the summary afterward.
+- A promotion reduces the inserted node's depth by one. The implementation uses
+  the already measured initial depth to determine the number of promotions,
+  avoiding a fresh parent walk after every rotation.
+- The policy gets a fresh factory instance per tree/trial, preserving its
+  count/extrema state without cross-run contamination. Duplicates consume no
+  bits or state. Each unique insertion consumes exactly 64 logical fair bits.
+- Both browser engines use one shared generator policy and BigInt arithmetic
+  for the 64-bit interval, with integer band rounding matching Python. The
+  browser PRNG differs from Python, so equal seeds do not promise equal shapes.
+
+Its persistent state is a count and two extrema outside the nodes. It remains
+a heuristic; mapping a priority interval to levels does not enforce a treap
+heap or establish logarithmic expected depth. The existing exact recount,
+window-budget and hash-heap tests remain in place for the other new strategies.

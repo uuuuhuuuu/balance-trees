@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 433" role="img" aria-labelledby="title desc"><title id="title">Increasing · Insertion time (µs / key)</title>
+<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>
+<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>
+<rect width="690" height="433" rx="14" fill="white"/>
+<text x="22" y="26" style="font-size:15px;font-weight:650">Increasing · Insertion time (µs / key)</text>
+<line class="grid" x1="67" x2="662" y1="279.00" y2="279.00"/>
+<text x="58" y="283.00" text-anchor="end">0</text>
+<line class="grid" x1="67" x2="662" y1="220.75" y2="220.75"/>
+<text x="58" y="224.75" text-anchor="end">3.86</text>
+<line class="grid" x1="67" x2="662" y1="162.50" y2="162.50"/>
+<text x="58" y="166.50" text-anchor="end">22.6</text>
+<line class="grid" x1="67" x2="662" y1="104.25" y2="104.25"/>
+<text x="58" y="108.25" text-anchor="end">114</text>
+<line class="grid" x1="67" x2="662" y1="46.00" y2="46.00"/>
+<text x="58" y="50.00" text-anchor="end">555</text>
+<line class="grid" x1="67.00" x2="67.00" y1="46" y2="279"/>
+<text x="67.00" y="301" text-anchor="middle">1,000</text>
+<line class="grid" x1="265.33" x2="265.33" y1="46" y2="279"/>
+<text x="265.33" y="301" text-anchor="middle">4,000</text>
+<line class="grid" x1="463.67" x2="463.67" y1="46" y2="279"/>
+<text x="463.67" y="301" text-anchor="middle">16,000</text>
+<line class="grid" x1="662.00" x2="662.00" y1="46" y2="279"/>
+<text x="662.00" y="301" text-anchor="middle">64,000</text>
+<path d="M67.00,159.17V148.34 M64.00,159.17h6 M64.00,148.34h6" stroke="#2563eb" fill="none"/>
+<circle cx="67.00" cy="153.36" r="4" fill="#2563eb"><title>halving; n=1000; microseconds_per_insertion=29.2165; SE=4.404039975801915</title></circle>
+<path d="M67.00,153.36 L265.33,144.79" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M265.33,149.48V140.63 M262.33,149.48h6 M262.33,140.63h6" stroke="#2563eb" fill="none"/>
+<circle cx="265.33" cy="144.79" r="4" fill="#2563eb"><title>halving; n=4000; microseconds_per_insertion=37.1231; SE=4.551119120308352</title></circle>
+<path d="M265.33,144.79 L463.67,135.04" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M463.67,145.02V127.20 M460.67,145.02h6 M460.67,127.20h6" stroke="#2563eb" fill="none"/>
+<circle cx="463.67" cy="135.04" r="4" fill="#2563eb"><title>halving; n=16000; microseconds_per_insertion=48.6669; SE=11.777680281004539</title></circle>
+<circle cx="22" cy="331" r="4" fill="#2563eb"/><text x="32" y="335">halving</text>
+<path d="M67.00,197.60V196.85 M64.00,197.60h6 M64.00,196.85h6" stroke="#d97706" fill="none"/>
+<circle cx="67.00" cy="197.23" r="4" fill="#d97706"><title>constant-half; n=1000; microseconds_per_insertion=8.1924; SE=0.09362149076896001</title></circle>
+<path d="M67.00,197.23 L265.33,195.59" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M265.33,196.96V194.26 M262.33,196.96h6 M262.33,194.26h6" stroke="#d97706" fill="none"/>
+<circle cx="265.33" cy="195.59" r="4" fill="#d97706"><title>constant-half; n=4000; microseconds_per_insertion=8.61053; SE=0.3523834999369353</title></circle>
+<path d="M265.33,195.59 L463.67,197.98" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M463.67,198.09V197.87 M460.67,198.09h6 M460.67,197.87h6" stroke="#d97706" fill="none"/>
+<circle cx="463.67" cy="197.98" r="4" fill="#d97706"><title>constant-half; n=16000; microseconds_per_insertion=8.00623; SE=0.027201411124324358</title></circle>
+<path d="M463.67,197.98 L662.00,197.55" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M662.00,197.72V197.39 M659.00,197.72h6 M659.00,197.39h6" stroke="#d97706" fill="none"/>
+<circle cx="662.00" cy="197.55" r="4" fill="#d97706"><title>constant-half; n=64000; microseconds_per_insertion=8.1112; SE=0.040214979208249804</title></circle>
+<circle cx="245" cy="331" r="4" fill="#d97706"/><text x="255" y="335">constant-half</text>
+<path d="M67.00,206.36V205.64 M64.00,206.36h6 M64.00,205.64h6" stroke="#7c3aed" fill="none"/>
+<circle cx="67.00" cy="206.00" r="4" fill="#7c3aed"><title>inverse-depth; n=1000; microseconds_per_insertion=6.24577; SE=0.0704381433580214</title></circle>
+<path d="M67.00,206.00 L265.33,204.65" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M265.33,205.00V204.30 M262.33,205.00h6 M262.33,204.30h6" stroke="#7c3aed" fill="none"/>
+<circle cx="265.33" cy="204.65" r="4" fill="#7c3aed"><title>inverse-depth; n=4000; microseconds_per_insertion=6.5157; SE=0.07215762887747007</title></circle>
+<path d="M265.33,204.65 L463.67,206.26" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M463.67,206.30V206.23 M460.67,206.30h6 M460.67,206.23h6" stroke="#7c3aed" fill="none"/>
+<circle cx="463.67" cy="206.26" r="4" fill="#7c3aed"><title>inverse-depth; n=16000; microseconds_per_insertion=6.19338; SE=0.007241219633832959</title></circle>
+<path d="M463.67,206.26 L662.00,206.26" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M662.00,206.50V206.02 M659.00,206.50h6 M659.00,206.02h6" stroke="#7c3aed" fill="none"/>
+<circle cx="662.00" cy="206.26" r="4" fill="#7c3aed"><title>inverse-depth; n=64000; microseconds_per_insertion=6.19456; SE=0.04618929367533778</title></circle>
+<circle cx="468" cy="331" r="4" fill="#7c3aed"/><text x="478" y="335">inverse-depth</text>
+<path d="M67.00,135.97V135.04 M64.00,135.97h6 M64.00,135.04h6" stroke="#475569" fill="none"/>
+<circle cx="67.00" cy="135.50" r="4" fill="#475569"><title>none; n=1000; microseconds_per_insertion=48.045; SE=0.6206970456994062</title></circle>
+<path d="M67.00,135.50 L265.33,82.54" stroke="#475569" stroke-width="2" fill="none"/>
+<path d="M265.33,83.22V81.87 M262.33,83.22h6 M262.33,81.87h6" stroke="#475569" fill="none"/>
+<circle cx="265.33" cy="82.54" r="4" fill="#475569"><title>none; n=4000; microseconds_per_insertion=205.345; SE=3.766117731112041</title></circle>
+<circle cx="22" cy="353" r="4" fill="#475569"/><text x="32" y="357">none</text>
+<path d="M67.00,198.50V197.40 M64.00,198.50h6 M64.00,197.40h6" stroke="#db2777" fill="none"/>
+<circle cx="67.00" cy="197.95" r="4" fill="#db2777"><title>paper-zig; n=1000; microseconds_per_insertion=8.01367; SE=0.13445848621460282</title></circle>
+<path d="M67.00,197.95 L265.33,196.99" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M265.33,197.25V196.73 M262.33,197.25h6 M262.33,196.73h6" stroke="#db2777" fill="none"/>
+<circle cx="265.33" cy="196.99" r="4" fill="#db2777"><title>paper-zig; n=4000; microseconds_per_insertion=8.25242; SE=0.06517688341022274</title></circle>
+<path d="M265.33,196.99 L463.67,197.36" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M463.67,197.44V197.27 M460.67,197.44h6 M460.67,197.27h6" stroke="#db2777" fill="none"/>
+<circle cx="463.67" cy="197.36" r="4" fill="#db2777"><title>paper-zig; n=16000; microseconds_per_insertion=8.15959; SE=0.021494587639803407</title></circle>
+<path d="M463.67,197.36 L662.00,196.70" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M662.00,196.78V196.62 M659.00,196.78h6 M659.00,196.62h6" stroke="#db2777" fill="none"/>
+<circle cx="662.00" cy="196.70" r="4" fill="#db2777"><title>paper-zig; n=64000; microseconds_per_insertion=8.32467; SE=0.019577162771274276</title></circle>
+<circle cx="245" cy="353" r="4" fill="#db2777"/><text x="255" y="357">paper-zig</text>
+<path d="M67.00,188.05V187.83 M64.00,188.05h6 M64.00,187.83h6" stroke="#0891b2" fill="none"/>
+<circle cx="67.00" cy="187.94" r="4" fill="#0891b2"><title>paper-zigzag; n=1000; microseconds_per_insertion=10.8261; SE=0.03449230909149219</title></circle>
+<path d="M67.00,187.94 L265.33,185.69" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M265.33,186.02V185.36 M262.33,186.02h6 M262.33,185.36h6" stroke="#0891b2" fill="none"/>
+<circle cx="265.33" cy="185.69" r="4" fill="#0891b2"><title>paper-zigzag; n=4000; microseconds_per_insertion=11.5703; SE=0.1132720126277287</title></circle>
+<path d="M265.33,185.69 L463.67,185.55" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M463.67,185.73V185.37 M460.67,185.73h6 M460.67,185.37h6" stroke="#0891b2" fill="none"/>
+<circle cx="463.67" cy="185.55" r="4" fill="#0891b2"><title>paper-zigzag; n=16000; microseconds_per_insertion=11.6179; SE=0.06036772885994658</title></circle>
+<path d="M463.67,185.55 L662.00,184.14" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M662.00,184.36V183.92 M659.00,184.36h6 M659.00,183.92h6" stroke="#0891b2" fill="none"/>
+<circle cx="662.00" cy="184.14" r="4" fill="#0891b2"><title>paper-zigzag; n=64000; microseconds_per_insertion=12.1089; SE=0.07865888277182088</title></circle>
+<circle cx="468" cy="353" r="4" fill="#0891b2"/><text x="478" y="357">paper-zigzag</text>
+<path d="M67.00,102.79V101.73 M64.00,102.79h6 M64.00,101.73h6" stroke="#dc2626" fill="none"/>
+<circle cx="67.00" cy="102.26" r="4" fill="#dc2626"><title>recount-root; n=1000; microseconds_per_insertion=119.861; SE=1.7307747279600696</title></circle>
+<path d="M67.00,102.26 L265.33,50.63" stroke="#dc2626" stroke-width="2" fill="none"/>
+<path d="M265.33,51.10V50.17 M262.33,51.10h6 M262.33,50.17h6" stroke="#dc2626" fill="none"/>
+<circle cx="265.33" cy="50.63" r="4" fill="#dc2626"><title>recount-root; n=4000; microseconds_per_insertion=489.344; SE=6.199353259187939</title></circle>
+<circle cx="22" cy="375" r="4" fill="#dc2626"/><text x="32" y="379">recount-root</text>
+<path d="M67.00,160.65V159.54 M64.00,160.65h6 M64.00,159.54h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="67.00" cy="160.09" r="4" fill="#4d7c0f"><title>window-root; n=1000; microseconds_per_insertion=24.1728; SE=0.38096322505048485</title></circle>
+<path d="M67.00,160.09 L265.33,155.51" stroke="#4d7c0f" stroke-width="2" fill="none"/>
+<path d="M265.33,155.62V155.40 M262.33,155.62h6 M262.33,155.40h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="265.33" cy="155.51" r="4" fill="#4d7c0f"><title>window-root; n=4000; microseconds_per_insertion=27.5051; SE=0.08436307138247093</title></circle>
+<path d="M265.33,155.51 L463.67,138.86" stroke="#4d7c0f" stroke-width="2" fill="none"/>
+<path d="M463.67,139.47V138.25 M460.67,139.47h6 M460.67,138.25h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="463.67" cy="138.86" r="4" fill="#4d7c0f"><title>window-root; n=16000; microseconds_per_insertion=43.7822; SE=0.7428484070171766</title></circle>
+<circle cx="245" cy="375" r="4" fill="#4d7c0f"/><text x="255" y="379">window-root</text>
+<path d="M67.00,193.75V193.18 M64.00,193.75h6 M64.00,193.18h6" stroke="#059669" fill="none"/>
+<circle cx="67.00" cy="193.47" r="4" fill="#059669"><title>hash-priority; n=1000; microseconds_per_insertion=9.17952; SE=0.07884216264564015</title></circle>
+<path d="M67.00,193.47 L265.33,192.19" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M265.33,192.29V192.09 M262.33,192.29h6 M262.33,192.09h6" stroke="#059669" fill="none"/>
+<circle cx="265.33" cy="192.19" r="4" fill="#059669"><title>hash-priority; n=4000; microseconds_per_insertion=9.53821; SE=0.02936702424114396</title></circle>
+<path d="M265.33,192.19 L463.67,191.66" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M463.67,192.09V191.23 M460.67,192.09h6 M460.67,191.23h6" stroke="#059669" fill="none"/>
+<circle cx="463.67" cy="191.66" r="4" fill="#059669"><title>hash-priority; n=16000; microseconds_per_insertion=9.69074; SE=0.1245682274916773</title></circle>
+<path d="M463.67,191.66 L662.00,191.68" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M662.00,191.95V191.42 M659.00,191.95h6 M659.00,191.42h6" stroke="#059669" fill="none"/>
+<circle cx="662.00" cy="191.68" r="4" fill="#059669"><title>hash-priority; n=64000; microseconds_per_insertion=9.68333; SE=0.0755095649847418</title></circle>
+<circle cx="468" cy="375" r="4" fill="#059669"/><text x="478" y="379">hash-priority</text>
+<path d="M67.00,153.67V143.99 M64.00,153.67h6 M64.00,143.99h6" stroke="#9333ea" fill="none"/>
+<circle cx="67.00" cy="148.52" r="4" fill="#9333ea"><title>random-level; n=1000; microseconds_per_insertion=33.4591; SE=4.496220811263595</title></circle>
+<path d="M67.00,148.52 L265.33,153.01" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M265.33,153.28V152.74 M262.33,153.28h6 M262.33,152.74h6" stroke="#9333ea" fill="none"/>
+<circle cx="265.33" cy="153.01" r="4" fill="#9333ea"><title>random-level; n=4000; microseconds_per_insertion=29.5054; SE=0.22099583230584227</title></circle>
+<path d="M265.33,153.01 L463.67,152.64" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M463.67,152.77V152.50 M460.67,152.77h6 M460.67,152.50h6" stroke="#9333ea" fill="none"/>
+<circle cx="463.67" cy="152.64" r="4" fill="#9333ea"><title>random-level; n=16000; microseconds_per_insertion=29.8125; SE=0.11352675588580051</title></circle>
+<path d="M463.67,152.64 L662.00,151.65" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M662.00,151.76V151.54 M659.00,151.76h6 M659.00,151.54h6" stroke="#9333ea" fill="none"/>
+<circle cx="662.00" cy="151.65" r="4" fill="#9333ea"><title>random-level; n=64000; microseconds_per_insertion=30.6483; SE=0.0935669798991293</title></circle>
+<circle cx="22" cy="397" r="4" fill="#9333ea"/><text x="32" y="401">random-level</text>
+<text x="22" y="425" style="font-size:10px">x: log(keys) · y: log(1 + value) · missing groups omitted · whiskers: ±1 SE</text>
+</svg>
