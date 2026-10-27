@@ -95,8 +95,8 @@ try {
   await waitFor('[...document.querySelectorAll("[data-workload]:not([hidden]) img")].every(img => img.complete && img.naturalWidth > 0)');
   const focused = await evaluate('fetch("./random-level-results/results.json").then(r => r.json())');
   assert.deepEqual(focused.metadata.strategies, ['random-level']);
-  assert.deepEqual(focused.metadata.sizes, [1000, 2000, 4000, 8000]);
-  assert.equal(focused.trials.length, 140);
+  assert.deepEqual(focused.metadata.sizes, [1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000]);
+  assert.equal(focused.trials.length, 280);
   assert.equal(focused.trials.every(trial => trial.status === 'complete'), true);
   assert.equal(await evaluate('fetch(document.querySelector("[data-workload]:not([hidden]) img").src).then(r => r.text()).then(svg => svg.includes(\'class="log-reference"\'))'), true);
   await screenshot('random-level-desktop.png');

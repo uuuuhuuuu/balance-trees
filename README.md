@@ -47,8 +47,9 @@ The showcase includes three additional static pages, linked from its sidebar:
 - **[All results](src/balance_trees/showcase/site/dist/summary.html)**:
   compact bullet points for every strategy/workload, plus the complete matrix.
 - **[Random-level · thousands](src/balance_trees/showcase/site/dist/random-level.html)**:
-  a separate run at 1,000, 2,000, 4,000 and 8,000 keys, with five trials for each
-  of the seven input families (140 completed trials). Its data and downloads
+  separate measurements at 1,000, 2,000, 4,000, 8,000, 16,000, 32,000, 64,000
+  and 128,000 keys, with five trials for each of the seven input families.
+  The original 140 trials are preserved alongside 140 larger trials. Its data and downloads
   are separate from the original comparison. Every graph includes a muted
   dashed log₂(n) reference behind the measured curves.
 
@@ -81,6 +82,17 @@ PYTHONPATH=src python3 -m balance_trees.benchmark \
   --strategies random-level --output benchmarks/results/my-random-level-run
 PYTHONPATH=src python3 -m balance_trees.benchmark_report \
   --input benchmarks/results/my-random-level-run \
+  --output src/balance_trees/showcase/site/dist --random-level
+
+# Extend that run with larger instances, preserving its smaller measurements.
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 16000 32000 64000 128000 --trials 5 --seed 2026 --timeout 10 \
+  --strategies random-level --output benchmarks/results/my-random-level-large
+PYTHONPATH=src python3 -m balance_trees.benchmark_merge \
+  --input benchmarks/results/my-random-level-run benchmarks/results/my-random-level-large \
+  --output benchmarks/results/my-random-level-combined
+PYTHONPATH=src python3 -m balance_trees.benchmark_report \
+  --input benchmarks/results/my-random-level-combined \
   --output src/balance_trees/showcase/site/dist --random-level
 
 # Build a portable static copy, including every graph and data download.

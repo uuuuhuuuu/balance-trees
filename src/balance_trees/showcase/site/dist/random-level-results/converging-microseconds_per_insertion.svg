@@ -6,34 +6,54 @@
 <line class="grid" x1="67" x2="662" y1="279.00" y2="279.00"/>
 <text x="58" y="283.00" text-anchor="end">0</text>
 <line class="grid" x1="67" x2="662" y1="220.75" y2="220.75"/>
-<text x="58" y="224.75" text-anchor="end">1.51</text>
+<text x="58" y="224.75" text-anchor="end">1.54</text>
 <line class="grid" x1="67" x2="662" y1="162.50" y2="162.50"/>
-<text x="58" y="166.50" text-anchor="end">5.3</text>
+<text x="58" y="166.50" text-anchor="end">5.46</text>
 <line class="grid" x1="67" x2="662" y1="104.25" y2="104.25"/>
-<text x="58" y="108.25" text-anchor="end">14.8</text>
+<text x="58" y="108.25" text-anchor="end">15.4</text>
 <line class="grid" x1="67" x2="662" y1="46.00" y2="46.00"/>
-<text x="58" y="50.00" text-anchor="end">38.7</text>
+<text x="58" y="50.00" text-anchor="end">40.7</text>
 <line class="grid" x1="67.00" x2="67.00" y1="46" y2="279"/>
 <text x="67.00" y="301" text-anchor="middle">1,000</text>
-<line class="grid" x1="265.33" x2="265.33" y1="46" y2="279"/>
-<text x="265.33" y="301" text-anchor="middle">2,000</text>
-<line class="grid" x1="463.67" x2="463.67" y1="46" y2="279"/>
-<text x="463.67" y="301" text-anchor="middle">4,000</text>
+<line class="grid" x1="152.00" x2="152.00" y1="46" y2="279"/>
+<text x="152.00" y="301" text-anchor="middle">2,000</text>
+<line class="grid" x1="237.00" x2="237.00" y1="46" y2="279"/>
+<text x="237.00" y="301" text-anchor="middle">4,000</text>
+<line class="grid" x1="322.00" x2="322.00" y1="46" y2="279"/>
+<text x="322.00" y="301" text-anchor="middle">8,000</text>
+<line class="grid" x1="407.00" x2="407.00" y1="46" y2="279"/>
+<text x="407.00" y="301" text-anchor="middle">16,000</text>
+<line class="grid" x1="492.00" x2="492.00" y1="46" y2="279"/>
+<text x="492.00" y="301" text-anchor="middle">32,000</text>
+<line class="grid" x1="577.00" x2="577.00" y1="46" y2="279"/>
+<text x="577.00" y="301" text-anchor="middle">64,000</text>
 <line class="grid" x1="662.00" x2="662.00" y1="46" y2="279"/>
-<text x="662.00" y="301" text-anchor="middle">8,000</text>
-<path class="log-reference" d="M67.00,127.43 L72.95,127.26 L78.90,127.08 L84.85,126.91 L90.80,126.74 L96.75,126.57 L102.70,126.40 L108.65,126.23 L114.60,126.06 L120.55,125.89 L126.50,125.72 L132.45,125.55 L138.40,125.38 L144.35,125.22 L150.30,125.05 L156.25,124.88 L162.20,124.72 L168.15,124.55 L174.10,124.39 L180.05,124.22 L186.00,124.06 L191.95,123.89 L197.90,123.73 L203.85,123.57 L209.80,123.40 L215.75,123.24 L221.70,123.08 L227.65,122.92 L233.60,122.76 L239.55,122.60 L245.50,122.44 L251.45,122.28 L257.40,122.12 L263.35,121.96 L269.30,121.80 L275.25,121.64 L281.20,121.48 L287.15,121.33 L293.10,121.17 L299.05,121.01 L305.00,120.86 L310.95,120.70 L316.90,120.54 L322.85,120.39 L328.80,120.23 L334.75,120.08 L340.70,119.93 L346.65,119.77 L352.60,119.62 L358.55,119.47 L364.50,119.31 L370.45,119.16 L376.40,119.01 L382.35,118.86 L388.30,118.71 L394.25,118.56 L400.20,118.41 L406.15,118.26 L412.10,118.11 L418.05,117.96 L424.00,117.81 L429.95,117.66 L435.90,117.51 L441.85,117.36 L447.80,117.22 L453.75,117.07 L459.70,116.92 L465.65,116.78 L471.60,116.63 L477.55,116.48 L483.50,116.34 L489.45,116.19 L495.40,116.05 L501.35,115.90 L507.30,115.76 L513.25,115.62 L519.20,115.47 L525.15,115.33 L531.10,115.19 L537.05,115.04 L543.00,114.90 L548.95,114.76 L554.90,114.62 L560.85,114.48 L566.80,114.34 L572.75,114.20 L578.70,114.05 L584.65,113.91 L590.60,113.78 L596.55,113.64 L602.50,113.50 L608.45,113.36 L614.40,113.22 L620.35,113.08 L626.30,112.94 L632.25,112.81 L638.20,112.67 L644.15,112.53 L650.10,112.39 L656.05,112.26 L662.00,112.12" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>
-<text x="656" y="103.12" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>
-<path d="M67.00,59.67V58.86 M64.00,59.67h6 M64.00,58.86h6" stroke="#2563eb" fill="none"/>
-<circle cx="67.00" cy="59.26" r="4" fill="#2563eb"><title>random-level; n=1000; microseconds_per_insertion=31.1928; SE=0.20733052572478106</title></circle>
-<path d="M67.00,59.26 L265.33,56.42" stroke="#2563eb" stroke-width="2" fill="none"/>
-<path d="M265.33,57.13V55.72 M262.33,57.13h6 M262.33,55.72h6" stroke="#2563eb" fill="none"/>
-<circle cx="265.33" cy="56.42" r="4" fill="#2563eb"><title>random-level; n=2000; microseconds_per_insertion=32.6736; SE=0.3752212886653312</title></circle>
-<path d="M265.33,56.42 L463.67,57.12" stroke="#2563eb" stroke-width="2" fill="none"/>
-<path d="M463.67,57.55V56.69 M460.67,57.55h6 M460.67,56.69h6" stroke="#2563eb" fill="none"/>
-<circle cx="463.67" cy="57.12" r="4" fill="#2563eb"><title>random-level; n=4000; microseconds_per_insertion=32.3026; SE=0.22577933006670728</title></circle>
-<path d="M463.67,57.12 L662.00,54.04" stroke="#2563eb" stroke-width="2" fill="none"/>
-<path d="M662.00,55.11V52.98 M659.00,55.11h6 M659.00,52.98h6" stroke="#2563eb" fill="none"/>
-<circle cx="662.00" cy="54.04" r="4" fill="#2563eb"><title>random-level; n=8000; microseconds_per_insertion=33.9644; SE=0.5879787678972435</title></circle>
+<text x="662.00" y="301" text-anchor="middle">128,000</text>
+<path class="log-reference" d="M67.00,129.44 L72.95,129.04 L78.90,128.65 L84.85,128.26 L90.80,127.87 L96.75,127.48 L102.70,127.09 L108.65,126.71 L114.60,126.33 L120.55,125.95 L126.50,125.58 L132.45,125.20 L138.40,124.83 L144.35,124.46 L150.30,124.10 L156.25,123.73 L162.20,123.37 L168.15,123.01 L174.10,122.65 L180.05,122.29 L186.00,121.94 L191.95,121.58 L197.90,121.23 L203.85,120.89 L209.80,120.54 L215.75,120.19 L221.70,119.85 L227.65,119.51 L233.60,119.17 L239.55,118.83 L245.50,118.50 L251.45,118.16 L257.40,117.83 L263.35,117.50 L269.30,117.17 L275.25,116.85 L281.20,116.52 L287.15,116.20 L293.10,115.88 L299.05,115.56 L305.00,115.24 L310.95,114.92 L316.90,114.61 L322.85,114.29 L328.80,113.98 L334.75,113.67 L340.70,113.36 L346.65,113.05 L352.60,112.75 L358.55,112.44 L364.50,112.14 L370.45,111.84 L376.40,111.54 L382.35,111.24 L388.30,110.94 L394.25,110.65 L400.20,110.35 L406.15,110.06 L412.10,109.77 L418.05,109.48 L424.00,109.19 L429.95,108.90 L435.90,108.62 L441.85,108.33 L447.80,108.05 L453.75,107.77 L459.70,107.48 L465.65,107.20 L471.60,106.93 L477.55,106.65 L483.50,106.37 L489.45,106.10 L495.40,105.82 L501.35,105.55 L507.30,105.28 L513.25,105.01 L519.20,104.74 L525.15,104.47 L531.10,104.21 L537.05,103.94 L543.00,103.68 L548.95,103.41 L554.90,103.15 L560.85,102.89 L566.80,102.63 L572.75,102.37 L578.70,102.11 L584.65,101.86 L590.60,101.60 L596.55,101.34 L602.50,101.09 L608.45,100.84 L614.40,100.59 L620.35,100.34 L626.30,100.09 L632.25,99.84 L638.20,99.59 L644.15,99.34 L650.10,99.10 L656.05,98.85 L662.00,98.61" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>
+<text x="656" y="89.61" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>
+<path d="M67.00,62.59V61.78 M64.00,62.59h6 M64.00,61.78h6" stroke="#2563eb" fill="none"/>
+<circle cx="67.00" cy="62.18" r="4" fill="#2563eb"><title>random-level; n=1000; microseconds_per_insertion=31.1928; SE=0.20733052572478106</title></circle>
+<path d="M67.00,62.18 L152.00,59.37" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M152.00,60.07V58.68 M149.00,60.07h6 M149.00,58.68h6" stroke="#2563eb" fill="none"/>
+<circle cx="152.00" cy="59.37" r="4" fill="#2563eb"><title>random-level; n=2000; microseconds_per_insertion=32.6736; SE=0.3752212886653312</title></circle>
+<path d="M152.00,59.37 L237.00,60.07" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M237.00,60.49V59.64 M234.00,60.49h6 M234.00,59.64h6" stroke="#2563eb" fill="none"/>
+<circle cx="237.00" cy="60.07" r="4" fill="#2563eb"><title>random-level; n=4000; microseconds_per_insertion=32.3026; SE=0.22577933006670728</title></circle>
+<path d="M237.00,60.07 L322.00,57.02" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M322.00,58.08V55.98 M319.00,58.08h6 M319.00,55.98h6" stroke="#2563eb" fill="none"/>
+<circle cx="322.00" cy="57.02" r="4" fill="#2563eb"><title>random-level; n=8000; microseconds_per_insertion=33.9644; SE=0.5879787678972435</title></circle>
+<path d="M322.00,57.02 L407.00,57.83" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M407.00,58.06V57.60 M404.00,58.06h6 M404.00,57.60h6" stroke="#2563eb" fill="none"/>
+<circle cx="407.00" cy="57.83" r="4" fill="#2563eb"><title>random-level; n=16000; microseconds_per_insertion=33.5158; SE=0.12571523988437297</title></circle>
+<path d="M407.00,57.83 L492.00,55.75" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M492.00,56.64V54.88 M489.00,56.64h6 M489.00,54.88h6" stroke="#2563eb" fill="none"/>
+<circle cx="492.00" cy="55.75" r="4" fill="#2563eb"><title>random-level; n=32000; microseconds_per_insertion=34.6834; SE=0.5047294192275341</title></circle>
+<path d="M492.00,55.75 L577.00,55.52" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M577.00,56.10V54.94 M574.00,56.10h6 M574.00,54.94h6" stroke="#2563eb" fill="none"/>
+<circle cx="577.00" cy="55.52" r="4" fill="#2563eb"><title>random-level; n=64000; microseconds_per_insertion=34.8175; SE=0.33351498434786514</title></circle>
+<path d="M577.00,55.52 L662.00,53.74" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M662.00,54.58V52.90 M659.00,54.58h6 M659.00,52.90h6" stroke="#2563eb" fill="none"/>
+<circle cx="662.00" cy="53.74" r="4" fill="#2563eb"><title>random-level; n=128000; microseconds_per_insertion=35.8549; SE=0.4975928831329756</title></circle>
 <circle cx="22" cy="331" r="4" fill="#2563eb"/><text x="32" y="335">random-level</text>
 <text x="22" y="422" style="font-size:10px">x: log(keys) · y: log(1 + value) · missing groups omitted · whiskers: ±1 SE</text>
 </svg>

@@ -101,18 +101,32 @@ and GitHub Pages contain every result without rerunning machine-specific work.
 both existing report pages lead to it. The new data and SVG downloads live in
 `site/dist/random-level-results/` and are included in the GitHub Pages build.
 
-The recorded run contains 140 completed trials: 1,000, 2,000, 4,000 and 8,000
-keys, all seven input families, five trial seeds, seed 2026 and a ten-second
-subprocess deadline. Reproduce it in a fresh directory:
+The page preserves the original 140 trials at 1,000, 2,000, 4,000 and 8,000 keys
+and adds 140 trials at 16,000, 32,000, 64,000 and 128,000 keys. Both batches
+use all seven input families, five trial seeds, seed 2026 and a ten-second
+subprocess deadline. Reproduce the two batches in fresh directories:
 
 ```sh
 PYTHONPATH=src python3 -m balance_trees.benchmark \
   --sizes 1000 2000 4000 8000 --trials 5 --seed 2026 --timeout 10 \
   --strategies random-level --output benchmarks/results/my-random-level-run
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 16000 32000 64000 128000 --trials 5 --seed 2026 --timeout 10 \
+  --strategies random-level --output benchmarks/results/my-random-level-large
+PYTHONPATH=src python3 -m balance_trees.benchmark_merge \
+  --input benchmarks/results/my-random-level-run benchmarks/results/my-random-level-large \
+  --output benchmarks/results/my-random-level-combined
 PYTHONPATH=src python3 -m balance_trees.benchmark_report \
-  --input benchmarks/results/my-random-level-run \
+  --input benchmarks/results/my-random-level-combined \
   --output src/balance_trees/showcase/site/dist --random-level
 ```
+
+`benchmark_merge` keeps every recorded trial unchanged and recalculates group
+summaries. It requires disjoint sizes and matching machine, Python version,
+seed, trial count and measurement settings. It writes a fresh directory and
+retains the source batch metadata in `config.json` and `results.json`. To extend
+an existing dataset, use its directory as the first merge input and benchmark
+only sizes it does not contain.
 
 All generated graphs show a muted dashed `log₂(n)` curve behind the measurements.
 This uses the same axes and the actual value of `log₂(n)` without fitting a
