@@ -1,4 +1,5 @@
 import json
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -8,9 +9,65 @@ from unittest.mock import patch
 
 from balance_trees.benchmark import run_benchmarks
 from balance_trees.benchmark_report import chart_svg, generate_report
+from balance_trees.showcase.server import STATIC
 
 
 class BenchmarkTests(unittest.TestCase):
+    def test_dense_scale_labels_keep_endpoints_and_all_measurements(self):
+        sizes = [2**power for power in range(10, 22)]
+        results = {
+            "metadata": {"sizes": sizes, "strategies": ["random-level"]},
+            "summaries": [
+                {
+                    "strategy": "random-level",
+                    "order": "random",
+                    "n": n,
+                    "status": "complete",
+                    "height": 30,
+                }
+                for n in sizes
+            ],
+        }
+        svg = ET.fromstring(chart_svg(results, "random", "height"))
+        ns = {"s": "http://www.w3.org/2000/svg"}
+        labels = [text.text for text in svg.findall('s:text[@y="301"]', ns)]
+        self.assertEqual(len(labels), 6)
+        self.assertEqual((labels[0], labels[-1]), ("1,024", "2,097,152"))
+        points = svg.findall("s:circle/s:title", ns)
+        self.assertEqual(len(points), len(sizes))
+
+    def test_large_sweep_report_preserves_earlier_pages_and_includes_memory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "run"
+            shutil.copytree(STATIC / "random-level-results", source)
+            (source / "memory.json").write_text(
+                json.dumps({
+                    "peak_child_rss_bytes": 300 * 1024**2,
+                    "address_space_limit_bytes": 1024**3,
+                })
+            )
+            site = root / "site"
+            site.mkdir()
+            for name in ("results.html", "summary.html", "random-level.html"):
+                (site / name).write_text("preserved")
+            generate_report(source, site, random_level_scale=True)
+            for name in ("results.html", "summary.html", "random-level.html"):
+                self.assertEqual((site / name).read_text(), "preserved")
+            html = (site / "random-level-scale.html").read_text()
+            self.assertIn("Random-level through millions of keys", html)
+            self.assertIn("300.0 MiB", html)
+            self.assertIn("./random-level-scale-results/memory.json", html)
+            self.assertIn("./random-level-scale-results/trials.csv", html)
+            graphs = list((site / "random-level-scale-results").glob("*.svg"))
+            self.assertEqual(len(graphs), 49)
+            for graph in graphs:
+                ET.parse(graph)
+            self.assertEqual(
+                (site / "random-level-scale-results/results.json").read_bytes(),
+                (source / "results.json").read_bytes(),
+            )
+
     def test_log_reference_is_visible_and_drawn_behind_measurements(self):
         results = {
             "metadata": {"sizes": [1000, 8000], "strategies": ["random-level"]},

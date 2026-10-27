@@ -1,0 +1,14 @@
+{
+  "baseline": "benchmarks/random-level-scale/results.json",
+  "baseline_sha256": "f3d2df058c38c277e52ca3a5f09dbc81c030fc9e44dba38463667ada3bd52c14",
+  "compared_trials": 77,
+  "matching_non_timing_metrics": true,
+  "excluded_metrics": [
+    "microseconds_per_insertion",
+    "seconds"
+  ],
+  "complete_trials": 84,
+  "largest_sequence": 2097152,
+  "added_trials": 7,
+  "validation": "Every completed trial checks BST ordering, parent links, absence of cycles/shared children, and the full input key set. Every repeated trial reproduces its original seed and all non-timing metrics exactly."
+}

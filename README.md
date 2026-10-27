@@ -39,7 +39,7 @@ extension points, and exporting another implementation.
 
 ### Local benchmark graphs and compact results
 
-The showcase includes four additional static pages, linked from its sidebar:
+The showcase includes five additional static pages, linked from its sidebar:
 
 - **[Benchmark graphs](src/balance_trees/showcase/site/dist/results.html)**:
   seven workload families, seven metrics, scalable SVG graphs, error bars,
@@ -52,6 +52,9 @@ The showcase includes four additional static pages, linked from its sidebar:
   The original 140 trials are preserved alongside 140 larger trials. Its data and downloads
   are separate from the original comparison. Every graph includes a muted
   dashed log₂(n) reference behind the measured curves.
+- **[Random-level · millions](src/balance_trees/showcase/site/dist/random-level-scale.html)**:
+  the repeated powers-of-two sweep through 2,097,152 keys, with seven workloads,
+  SVG graphs, full data downloads, and peak memory.
 - **[Random-level v2 · policy and reports](src/balance_trees/showcase/site/dist/random-level-v2.html)**:
   policy description, expected rotation bound, paired comparisons with the
   original at 1,000, 16,000 and 128,000 keys, tables and downloadable reports.
@@ -110,6 +113,13 @@ PYTHONPATH=src python3 -m balance_trees.showcase.build --output _site
 the report uses relative CSS/SVG/data paths and no external services. The
 interactive tree preview needs an HTTP server for modules and workers.
 See [benchmark methodology and reproduction](docs/benchmarks.md).
+
+A separate [memory-capped random-level sweep](benchmarks/README.md) tests exact
+powers of two from 2^10 through 2^20, including 65,536 and 1,048,576 keys, across
+all seven workloads. Raw results and peak memory are checked in under
+`benchmarks/random-level-scale/`.
+The repeat sweep in `benchmarks/random-level-scale-recheck/` extends the same
+workloads through 2^21 (2,097,152 keys), using the explicit insertion-depth cap.
 
 ### Public hosting on GitHub
 

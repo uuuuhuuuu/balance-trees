@@ -107,6 +107,15 @@ try {
   assert.equal(focused.trials.every(trial => trial.status === 'complete'), true);
   assert.equal(await evaluate('fetch(document.querySelector("[data-workload]:not([hidden]) img").src).then(r => r.text()).then(svg => svg.includes(\'class="log-reference"\'))'), true);
   await screenshot('random-level-desktop.png');
+  await navigate('random-level-scale.html');
+  await waitFor('[...document.querySelectorAll("[data-workload]:not([hidden]) img")].length === 7 && [...document.querySelectorAll("[data-workload]:not([hidden]) img")].every(img => img.complete && img.naturalWidth > 0)');
+  const scale = await evaluate('fetch("./random-level-scale-results/results.json").then(r => r.json())');
+  assert.equal(Math.max(...scale.metadata.sizes), 2 ** 21);
+  assert.equal(scale.trials.length, 84);
+  assert.equal(scale.trials.every(trial => trial.status === 'complete'), true);
+  assert.equal(await evaluate('document.querySelector("h1").textContent'), 'Random-level through millions of keys');
+  assert.equal(await evaluate('document.body.textContent.includes("no standard error")'), true);
+  await screenshot('random-level-scale-desktop.png');
   await navigate('random-level-v2.html');
   await waitFor('document.querySelectorAll("[data-workload]:not([hidden])").length === 1');
   await waitFor('[...document.querySelectorAll("[data-workload]:not([hidden]) img")].every(img => img.complete && img.naturalWidth > 0)');
@@ -137,6 +146,9 @@ try {
   await navigate('random-level.html');
   assert.equal(await evaluate('document.documentElement.scrollWidth <= 390'), true);
   await screenshot('random-level-mobile.png');
+  await navigate('random-level-scale.html');
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= 390'), true);
+  await screenshot('random-level-scale-mobile.png');
   await navigate('random-level-v2.html');
   assert.equal(await evaluate('document.documentElement.scrollWidth <= 390'), true);
   await screenshot('v2-report-mobile.png');

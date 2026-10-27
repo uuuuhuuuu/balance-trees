@@ -9,7 +9,7 @@ PRIORITY_BITS = 64
 
 @dataclass(slots=True)
 class TreapPriority:
-    """Roll a priority per insertion, then rotate it to a target depth.
+    """Roll a priority, then promote the leaf only if its target is shallower.
 
     Priorities are not stored on nodes. The strategy retains only the number
     of inserted nodes and the lowest/highest priorities observed so far.
@@ -91,8 +91,14 @@ class TreapPriority:
 
         context.stats.priority = priority
 
+        # A sampled level below this leaf is unreachable by upward rotations.
+        # Stay at the insertion depth rather than moving the leaf downward.
+        target = min(target, context.stats.insertion_depth)
+        if target == context.stats.insertion_depth:
+            return
+
         node = context.inserted
         # Each promotion reduces this leaf's depth by exactly one. Repeated
         # parent walks here would add quadratic work to a long promotion.
-        for _ in range(max(0, context.stats.insertion_depth - target)):
+        for _ in range(context.stats.insertion_depth - target):
             context.promote(node, distance=0)

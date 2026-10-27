@@ -36,6 +36,7 @@ class PagesBuildTests(unittest.TestCase):
                 "summary.html",
                 "results.html",
                 "random-level.html",
+                "random-level-scale.html",
                 "random-level-v2.html",
             ):
                 page = AssetReferences()

@@ -99,6 +99,23 @@ and GitHub Pages contain every result without rerunning machine-specific work.
 
 ## Separate random-level page
 
+An additional [Linux stress-test runner](../benchmarks/README.md) covers every
+power of two from 2^10 through 2^20, with a 1 GiB address-space cap per process.
+Its [raw results](../benchmarks/random-level-scale/results.json) and
+[peak memory](../benchmarks/random-level-scale/memory.json) are kept separately
+from the website dataset below. Every completed trial checks structural
+invariants and the full key set after insertion; the larger sweep uses one
+deterministic trial per size and workload.
+
+The [repeat sweep](../benchmarks/random-level-scale-recheck/results.json)
+reruns those sizes after making the insertion-depth cap explicit, then adds
+2^21 (2,097,152 keys) for every workload. It uses seed 2026, one trial per group,
+a 360-second subprocess deadline, and the same 1 GiB address-space limit.
+The [memory record](../benchmarks/random-level-scale-recheck/memory.json)
+includes final invariant validation in its peak resident memory measurement.
+Its website graphs are at `/random-level-scale.html`; regenerate them using
+`benchmark_report --random-level-scale` as shown in the runner instructions.
+
 `/random-level.html` adds a focused benchmark without replacing `results.html`,
 `summary.html`, or their original measurements. Links from the visualizer and
 both existing report pages lead to it. The new data and SVG downloads live in

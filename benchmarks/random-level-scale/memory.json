@@ -1,0 +1,5 @@
+{
+  "address_space_limit_bytes": 1073741824,
+  "peak_child_rss_bytes": 311812096,
+  "note": "Peak resident memory of the largest isolated trial, including validation; address-space cap also includes virtual mappings. Linux ru_maxrss is in KiB."
+}

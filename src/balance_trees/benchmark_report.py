@@ -82,11 +82,20 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
             f'<line class="grid" x1="{left}" x2="{left + width}" y1="{yy:.2f}" y2="{yy:.2f}"/>',
             f'<text x="{left - 9}" y="{yy + 4:.2f}" text-anchor="end">{number(value)}</text>',
         ]
-    for n in sizes:
+    # Keep all grid lines and measurements, but leave room for million-key labels.
+    label_count = min(len(sizes), 6)
+    label_indices = {
+        round(i * (len(sizes) - 1) / max(1, label_count - 1))
+        for i in range(label_count)
+    }
+    for index, n in enumerate(sizes):
         parts += [
             f'<line class="grid" x1="{x(n):.2f}" x2="{x(n):.2f}" y1="{top}" y2="{top + height}"/>',
-            f'<text x="{x(n):.2f}" y="301" text-anchor="middle">{n:,}</text>',
         ]
+        if index in label_indices:
+            parts.append(
+                f'<text x="{x(n):.2f}" y="301" text-anchor="middle">{n:,}</text>'
+            )
     # Sample the reference in data space before applying the nonlinear y scale.
     reference = []
     for step in range(101):
@@ -156,7 +165,7 @@ def page(title: str, body: str, *, script: str = "") -> str:
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Complete measured local benchmark results for experimental binary search tree strategies.">
 <title>{esc(title)} · Rotation Lab</title><link rel="stylesheet" href="./report.css"></head><body><main>
-<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./random-level.html">Random-level · thousands</a><a href="./random-level-v2.html">Random-level v2 · report</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
+<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./random-level.html">Random-level · thousands</a><a href="./random-level-scale.html">Random-level · millions</a><a href="./random-level-v2.html">Random-level v2 · report</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
 {body}</main>{script}</body></html>"""
 
 
@@ -242,13 +251,24 @@ def common(results: dict) -> tuple[str, str]:
     return stats + machine + coverage, methodology
 
 
-def generate_report(source: Path, output: Path, *, random_level: bool = False) -> None:
+def generate_report(
+    source: Path,
+    output: Path,
+    *,
+    random_level: bool = False,
+    random_level_scale: bool = False,
+) -> None:
+    if random_level and random_level_scale:
+        raise ValueError("Choose one dedicated random-level report.")
+    random_level = random_level or random_level_scale
     results = json.loads((source / "results.json").read_text())
     meta, rows = results["metadata"], results["summaries"]
     if random_level and meta["strategies"] != ["random-level"]:
         raise ValueError("The random-level page requires a random-level-only run.")
     output.mkdir(parents=True, exist_ok=True)
     data_name = "random-level-results" if random_level else "results"
+    if random_level_scale:
+        data_name = "random-level-scale-results"
     data = output / data_name
     data.mkdir(exist_ok=True)
     for filename in (
@@ -275,6 +295,18 @@ def generate_report(source: Path, output: Path, *, random_level: bool = False) -
         )
         + "</div></section>"
     )
+    memory_note = ""
+    if random_level_scale and (source / "memory.json").exists():
+        memory = json.loads((source / "memory.json").read_text())
+        if (source / "memory.json").resolve() != (data / "memory.json").resolve():
+            shutil.copyfile(source / "memory.json", data / "memory.json")
+        peak = memory["peak_child_rss_bytes"] / 1024**2
+        cap = memory["address_space_limit_bytes"] / 1024**2
+        memory_note = (
+            f'<p class="status-note">Largest trial peak resident memory: {peak:,.1f} MiB, '
+            f'including final invariant validation. Per-process address-space cap: {cap:,.0f} MiB. '
+            f'<a href="./{data_name}/memory.json" download>Download memory record</a>.</p>'
+        )
     stats, methodology = common(results)
     cards = []
     for strategy in meta["strategies"]:
@@ -340,7 +372,21 @@ def generate_report(source: Path, output: Path, *, random_level: bool = False) -
             "Compare time, shape and work as sequences grow.",
             f"{meta['trials']} independently seeded trials per size and input family measure the random-level heuristic. Finite measurements do not establish logarithmic balance.",
         )
+    if random_level_scale:
+        dashboard = dashboard.replace(
+            "Random-level at thousands of keys", "Random-level through millions of keys"
+        )
+        if meta["trials"] == 1:
+            dashboard = dashboard.replace(
+                "1 independently seeded trials per size and input family measure",
+                "One deterministic trial per size and input family (no standard error) measures",
+            )
+        dashboard = dashboard.replace(
+            '<div class="workload">', memory_note + '<div class="workload">', 1
+        )
     filename = "random-level.html" if random_level else "results.html"
+    if random_level_scale:
+        filename = "random-level-scale.html"
     title = "Random-level benchmarks" if random_level else "Benchmark graphs"
     (output / filename).write_text(
         page(title, dashboard, script=script), encoding="utf-8"
@@ -351,14 +397,25 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument(
+    focused = parser.add_mutually_exclusive_group()
+    focused.add_argument(
         "--random-level",
         action="store_true",
         help="write a dedicated random-level.html page and separate data downloads",
     )
+    focused.add_argument(
+        "--random-level-scale",
+        action="store_true",
+        help="write random-level-scale.html with separate large-sweep graphs and data",
+    )
     args = parser.parse_args()
     try:
-        generate_report(args.input, args.output, random_level=args.random_level)
+        generate_report(
+            args.input,
+            args.output,
+            random_level=args.random_level,
+            random_level_scale=args.random_level_scale,
+        )
     except (OSError, ValueError, KeyError) as error:
         parser.error(str(error))
     print(f"Report ready in {args.output}")
