@@ -94,6 +94,35 @@ Generated raw run directories in `benchmarks/results/` stay ignored. The report'
 recorded data and SVGs under `site/dist/results/` are tracked so a fresh checkout
 and GitHub Pages contain every result without rerunning machine-specific work.
 
+## Separate random-level page
+
+`/random-level.html` adds a focused benchmark without replacing `results.html`,
+`summary.html`, or their original measurements. Links from the visualizer and
+both existing report pages lead to it. The new data and SVG downloads live in
+`site/dist/random-level-results/` and are included in the GitHub Pages build.
+
+The recorded run contains 140 completed trials: 1,000, 2,000, 4,000 and 8,000
+keys, all seven input families, five trial seeds, seed 2026 and a ten-second
+subprocess deadline. Reproduce it in a fresh directory:
+
+```sh
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 1000 2000 4000 8000 --trials 5 --seed 2026 --timeout 10 \
+  --strategies random-level --output benchmarks/results/my-random-level-run
+PYTHONPATH=src python3 -m balance_trees.benchmark_report \
+  --input benchmarks/results/my-random-level-run \
+  --output src/balance_trees/showcase/site/dist --random-level
+```
+
+All generated graphs show a muted dashed `log₂(n)` curve behind the measurements.
+This uses the same axes and the actual value of `log₂(n)` without fitting a
+multiplier. For time, rotations, bits and scans it is only a numeric guide;
+it does not have the metric's units and is not a timing prediction or a complexity
+bound. Axis ranges include the guide even when measured costs are zero.
+
+The report command without `--random-level` still regenerates the original
+comparison pages and leaves the dedicated page and its measurements intact.
+
 ## Review of `random-level`
 
 The review fixed two algorithm defects and a missing browser implementation:

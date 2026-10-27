@@ -52,7 +52,7 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
     max_value = max(
         (r[metric] + (r.get(metric + "_se") or 0) for r in complete), default=1
     )
-    ymax = max(1, max_value * 1.12)
+    ymax = max(1, max_value, math.log2(sizes[-1])) * 1.12
     left, top, width, height = 67, 46, 595, 233
 
     def x(n):
@@ -70,7 +70,7 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
     canvas_height = max(430, 345 + math.ceil(len(meta["strategies"]) / 3) * 22)
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 {canvas_height}" role="img" aria-labelledby="title desc"><title id="title">{esc(title)}</title>',
-        '<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>',
+        '<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). A dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>',
         "<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>",
         f'<rect width="690" height="{canvas_height}" rx="14" fill="white"/>',
         f'<text x="22" y="26" style="font-size:15px;font-weight:650">{esc(title)}</text>',
@@ -87,6 +87,17 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
             f'<line class="grid" x1="{x(n):.2f}" x2="{x(n):.2f}" y1="{top}" y2="{top + height}"/>',
             f'<text x="{x(n):.2f}" y="301" text-anchor="middle">{n:,}</text>',
         ]
+    # Sample the reference in data space before applying the nonlinear y scale.
+    reference = []
+    for step in range(101):
+        n = math.exp(
+            math.log(sizes[0]) + (math.log(sizes[-1]) - math.log(sizes[0])) * step / 100
+        )
+        reference.append(f"{'M' if step == 0 else 'L'}{x(n):.2f},{y(math.log2(n)):.2f}")
+    parts += [
+        f'<path class="log-reference" d="{" ".join(reference)}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>',
+        f'<text x="{left + width - 6}" y="{y(math.log2(sizes[-1])) - 9:.2f}" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>',
+    ]
     for index, strategy in enumerate(meta["strategies"]):
         color = (
             COLORS[index]
@@ -145,7 +156,7 @@ def page(title: str, body: str, *, script: str = "") -> str:
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Complete measured local benchmark results for experimental binary search tree strategies.">
 <title>{esc(title)} · Rotation Lab</title><link rel="stylesheet" href="./report.css"></head><body><main>
-<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
+<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./random-level.html">Random-level · thousands</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
 {body}</main>{script}</body></html>"""
 
 
@@ -231,11 +242,14 @@ def common(results: dict) -> tuple[str, str]:
     return stats + machine + coverage, methodology
 
 
-def generate_report(source: Path, output: Path) -> None:
+def generate_report(source: Path, output: Path, *, random_level: bool = False) -> None:
     results = json.loads((source / "results.json").read_text())
     meta, rows = results["metadata"], results["summaries"]
+    if random_level and meta["strategies"] != ["random-level"]:
+        raise ValueError("The random-level page requires a random-level-only run.")
     output.mkdir(parents=True, exist_ok=True)
-    data = output / "results"
+    data_name = "random-level-results" if random_level else "results"
+    data = output / data_name
     data.mkdir(exist_ok=True)
     for filename in (
         "results.json",
@@ -244,12 +258,13 @@ def generate_report(source: Path, output: Path) -> None:
         "trials.csv",
         "trials.jsonl",
     ):
-        shutil.copyfile(source / filename, data / filename)
+        if (source / filename).resolve() != (data / filename).resolve():
+            shutil.copyfile(source / filename, data / filename)
     (output / "report.css").write_text(CSS, encoding="utf-8")
     downloads = (
         '<section id="downloads"><h2>Every result, ready to inspect</h2><div class="downloads">'
         + "".join(
-            f'<a href="./results/{filename}" download>{label}</a>'
+            f'<a href="./{data_name}/{filename}" download>{label}</a>'
             for filename, label in [
                 ("results.json", "Full JSON"),
                 ("summary.csv", "All group summaries · CSV"),
@@ -290,7 +305,10 @@ def generate_report(source: Path, output: Path) -> None:
             f'<article class="card"><h3>{esc(spec["name"])} <span class="unit">· {esc(strategy)}</span></h3><p>{esc(spec["note"])}</p><ul>{"".join(bullets)}</ul></article>'
         )
     summary = f'<header><span class="eyebrow">Rotation Lab / measured on this computer</span><h1>All strategies. All results.</h1><p class="lede">Compact findings for every strategy and input family. Each bullet uses the largest fully completed sequence for that strategy; different key counts are printed explicitly.</p></header>{stats}<p class="notice">A timeout means the process hit its deadline. It supplies no completed runtime or final tree measurement. No strategy is silently dropped.</p><div class="cards">{"".join(cards)}</div><details class="panel"><summary>All {len(rows)} groups · every size and status</summary>{result_table(rows)}</details>{downloads}{methodology}'
-    (output / "summary.html").write_text(page("All results", summary), encoding="utf-8")
+    if not random_level:
+        (output / "summary.html").write_text(
+            page("All results", summary), encoding="utf-8"
+        )
     sections = []
     for index, order in enumerate(meta["orders"]):
         figures = []
@@ -300,7 +318,7 @@ def generate_report(source: Path, output: Path) -> None:
                 chart_svg(results, order, metric), encoding="utf-8"
             )
             figures.append(
-                f'<figure class="chart"><img src="./results/{filename}" alt="{esc(order)}: {esc(title)}" loading="lazy"><a href="./results/{filename}" download>Download SVG</a></figure>'
+                f'<figure class="chart"><img src="./{data_name}/{filename}" alt="{esc(order)}: {esc(title)}" loading="lazy"><a href="./{data_name}/{filename}" download>Download SVG</a></figure>'
             )
         sections.append(
             f'<section data-workload="{esc(order)}"><h2>{esc(order.capitalize())} sequences</h2><div class="charts">{"".join(figures)}</div><details class="panel"><summary>Measurements for {esc(order)}</summary>{result_table([r for r in rows if r["order"] == order], table_id=f"table-{index}")}</details></section>'
@@ -311,8 +329,21 @@ def generate_report(source: Path, output: Path) -> None:
     )
     script = """<script>const control=document.getElementById('workload');control.addEventListener('change',()=>{for(const section of document.querySelectorAll('[data-workload]'))section.hidden=control.value!=='all'&&section.dataset.workload!==control.value;});control.value='random';control.dispatchEvent(new Event('change'));</script>"""
     dashboard = f'<header><span class="eyebrow">Rotation Lab / local benchmarks</span><h1>How the strategies scale</h1><p class="lede">Real Python measurements from {min(meta["sizes"]):,} to {max(meta["sizes"]):,} keys. Compare time, shape and work as sequences grow. All charts are downloadable SVGs.</p></header>{stats}<div class="workload"><label for="workload">Input family</label><select id="workload">{options}</select></div><p class="status-note">Logarithmic x scale; y uses log(1 + value), so zeros remain visible. Whiskers show ±1 standard error. Missing points indicate incomplete groups; open the measurement tables for statuses.</p>{"".join(sections)}{downloads}{methodology}'
-    (output / "results.html").write_text(
-        page("Benchmark graphs", dashboard, script=script), encoding="utf-8"
+    reference_note = '<p class="status-note">Every graph has a muted dashed log₂(n) curve behind the measurements. It is an unscaled numeric reference, not a fitted bound or timing prediction; metric units remain as labelled.</p>'
+    dashboard = dashboard.replace(
+        '<div class="workload">', reference_note + '<div class="workload">', 1
+    )
+    if random_level:
+        dashboard = dashboard.replace(
+            "How the strategies scale", "Random-level at thousands of keys"
+        ).replace(
+            "Compare time, shape and work as sequences grow.",
+            f"{meta['trials']} independently seeded trials per size and input family measure the random-level heuristic. Finite measurements do not establish logarithmic balance.",
+        )
+    filename = "random-level.html" if random_level else "results.html"
+    title = "Random-level benchmarks" if random_level else "Benchmark graphs"
+    (output / filename).write_text(
+        page(title, dashboard, script=script), encoding="utf-8"
     )
 
 
@@ -320,14 +351,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--random-level",
+        action="store_true",
+        help="write a dedicated random-level.html page and separate data downloads",
+    )
     args = parser.parse_args()
     try:
-        generate_report(args.input, args.output)
+        generate_report(args.input, args.output, random_level=args.random_level)
     except (OSError, ValueError, KeyError) as error:
         parser.error(str(error))
-    print(
-        f"Graphs: {args.output / 'results.html'}; compact website: {args.output / 'summary.html'}"
-    )
+    print(f"Report ready in {args.output}")
 
 
 if __name__ == "__main__":

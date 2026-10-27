@@ -23,7 +23,7 @@ balance-tree-benchmark-report = "balance_trees.benchmark_report:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"balance_trees.showcase" = ["site/dist/*", "site/dist/results/*"]
+"balance_trees.showcase" = ["site/dist/*", "site/dist/results/*", "site/dist/random-level-results/*"]
 
 [tool.ruff]
 line-length = 88

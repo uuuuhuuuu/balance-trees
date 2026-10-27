@@ -46,7 +46,10 @@ the previously generated `_site` directory before rebuilding. It is ignored by
 Git; the workflow always builds from the committed source.
 
 Only files from `src/balance_trees/showcase/site/dist/` enter the deployment,
-including `results.html`, `summary.html`, recorded CSV/JSON measurements and SVG graphs.
+including `results.html`, `summary.html`, `random-level.html`, recorded CSV/JSON
+measurements and SVG graphs. The separate random-level run is linked from all
+three existing pages; its downloads live in `random-level-results/` alongside
+the preserved original `results/` dataset.
 These are measurements recorded on the local computer; Pages does not rerun them.
 The build sets browser-only mode, so GitHub Pages makes no calls to the local
 Python API. Relative asset and module URLs support `/balance-trees/`, a renamed

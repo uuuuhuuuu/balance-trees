@@ -90,6 +90,16 @@ try {
   await evaluate('document.querySelector("#workload").value="increasing"; document.querySelector("#workload").dispatchEvent(new Event("change"))');
   assert.equal(await evaluate('document.querySelector("[data-workload]:not([hidden])").dataset.workload'), 'increasing');
   await screenshot('graphs-desktop.png');
+  await navigate('random-level.html');
+  await waitFor('document.querySelectorAll("[data-workload]:not([hidden])").length === 1');
+  await waitFor('[...document.querySelectorAll("[data-workload]:not([hidden]) img")].every(img => img.complete && img.naturalWidth > 0)');
+  const focused = await evaluate('fetch("./random-level-results/results.json").then(r => r.json())');
+  assert.deepEqual(focused.metadata.strategies, ['random-level']);
+  assert.deepEqual(focused.metadata.sizes, [1000, 2000, 4000, 8000]);
+  assert.equal(focused.trials.length, 140);
+  assert.equal(focused.trials.every(trial => trial.status === 'complete'), true);
+  assert.equal(await evaluate('fetch(document.querySelector("[data-workload]:not([hidden]) img").src).then(r => r.text()).then(svg => svg.includes(\'class="log-reference"\'))'), true);
+  await screenshot('random-level-desktop.png');
   await navigate('summary.html');
   const expected = await evaluate('fetch("./results/results.json").then(r => r.json()).then(data => ({groups:data.summaries.length,strategies:data.metadata.strategies.length}))');
   assert.equal(await evaluate('document.querySelectorAll("article.card").length'), expected.strategies);
@@ -101,6 +111,9 @@ try {
   await navigate('results.html');
   assert.equal(await evaluate('document.documentElement.scrollWidth <= 390'), true);
   await screenshot('graphs-mobile.png');
+  await navigate('random-level.html');
+  assert.equal(await evaluate('document.documentElement.scrollWidth <= 390'), true);
+  await screenshot('random-level-mobile.png');
   await navigate('index.html');
   await waitFor('document.querySelector("#source-badge")?.textContent === "Python implementation"');
   await evaluate(`document.querySelector('#strategy').value='hash-priority'; document.querySelector('#count').value='1000'; document.querySelector('#generate').click();`);

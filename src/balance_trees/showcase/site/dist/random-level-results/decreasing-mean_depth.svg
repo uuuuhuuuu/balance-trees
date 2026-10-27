@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 430" role="img" aria-labelledby="title desc"><title id="title">Decreasing · Final mean depth (edges)</title>
+<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). A dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>
+<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>
+<rect width="690" height="430" rx="14" fill="white"/>
+<text x="22" y="26" style="font-size:15px;font-weight:650">Decreasing · Final mean depth (edges)</text>
+<line class="grid" x1="67" x2="662" y1="279.00" y2="279.00"/>
+<text x="58" y="283.00" text-anchor="end">0</text>
+<line class="grid" x1="67" x2="662" y1="220.75" y2="220.75"/>
+<text x="58" y="224.75" text-anchor="end">1.17</text>
+<line class="grid" x1="67" x2="662" y1="162.50" y2="162.50"/>
+<text x="58" y="166.50" text-anchor="end">3.72</text>
+<line class="grid" x1="67" x2="662" y1="104.25" y2="104.25"/>
+<text x="58" y="108.25" text-anchor="end">9.25</text>
+<line class="grid" x1="67" x2="662" y1="46.00" y2="46.00"/>
+<text x="58" y="50.00" text-anchor="end">21.3</text>
+<line class="grid" x1="67.00" x2="67.00" y1="46" y2="279"/>
+<text x="67.00" y="301" text-anchor="middle">1,000</text>
+<line class="grid" x1="265.33" x2="265.33" y1="46" y2="279"/>
+<text x="265.33" y="301" text-anchor="middle">2,000</text>
+<line class="grid" x1="463.67" x2="463.67" y1="46" y2="279"/>
+<text x="463.67" y="301" text-anchor="middle">4,000</text>
+<line class="grid" x1="662.00" x2="662.00" y1="46" y2="279"/>
+<text x="662.00" y="301" text-anchor="middle">8,000</text>
+<path class="log-reference" d="M67.00,99.17 L72.95,98.96 L78.90,98.76 L84.85,98.55 L90.80,98.35 L96.75,98.15 L102.70,97.94 L108.65,97.74 L114.60,97.54 L120.55,97.34 L126.50,97.14 L132.45,96.94 L138.40,96.74 L144.35,96.54 L150.30,96.34 L156.25,96.15 L162.20,95.95 L168.15,95.75 L174.10,95.56 L180.05,95.36 L186.00,95.17 L191.95,94.97 L197.90,94.78 L203.85,94.58 L209.80,94.39 L215.75,94.20 L221.70,94.01 L227.65,93.82 L233.60,93.62 L239.55,93.43 L245.50,93.24 L251.45,93.05 L257.40,92.86 L263.35,92.68 L269.30,92.49 L275.25,92.30 L281.20,92.11 L287.15,91.93 L293.10,91.74 L299.05,91.55 L305.00,91.37 L310.95,91.18 L316.90,91.00 L322.85,90.82 L328.80,90.63 L334.75,90.45 L340.70,90.27 L346.65,90.08 L352.60,89.90 L358.55,89.72 L364.50,89.54 L370.45,89.36 L376.40,89.18 L382.35,89.00 L388.30,88.82 L394.25,88.64 L400.20,88.46 L406.15,88.28 L412.10,88.11 L418.05,87.93 L424.00,87.75 L429.95,87.58 L435.90,87.40 L441.85,87.23 L447.80,87.05 L453.75,86.88 L459.70,86.70 L465.65,86.53 L471.60,86.35 L477.55,86.18 L483.50,86.01 L489.45,85.84 L495.40,85.67 L501.35,85.49 L507.30,85.32 L513.25,85.15 L519.20,84.98 L525.15,84.81 L531.10,84.64 L537.05,84.47 L543.00,84.30 L548.95,84.14 L554.90,83.97 L560.85,83.80 L566.80,83.63 L572.75,83.47 L578.70,83.30 L584.65,83.13 L590.60,82.97 L596.55,82.80 L602.50,82.64 L608.45,82.47 L614.40,82.31 L620.35,82.14 L626.30,81.98 L632.25,81.82 L638.20,81.65 L644.15,81.49 L650.10,81.33 L656.05,81.17 L662.00,81.01" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>
+<text x="656" y="72.01" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>
+<path d="M67.00,80.63V75.52 M64.00,80.63h6 M64.00,75.52h6" stroke="#2563eb" fill="none"/>
+<circle cx="67.00" cy="78.03" r="4" fill="#2563eb"><title>random-level; n=1000; mean_depth=13.53; SE=0.494762569319871</title></circle>
+<path d="M67.00,78.03 L265.33,67.68" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M265.33,68.77V66.61 M262.33,68.77h6 M262.33,66.61h6" stroke="#2563eb" fill="none"/>
+<circle cx="265.33" cy="67.68" r="4" fill="#2563eb"><title>random-level; n=2000; mean_depth=15.6769; SE=0.23990442888783883</title></circle>
+<path d="M265.33,67.68 L463.67,59.78" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M463.67,60.84V58.74 M460.67,60.84h6 M460.67,58.74h6" stroke="#2563eb" fill="none"/>
+<circle cx="463.67" cy="59.78" r="4" fill="#2563eb"><title>random-level; n=4000; mean_depth=17.5282; SE=0.25870416985429523</title></circle>
+<path d="M463.67,59.78 L662.00,54.66" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M662.00,55.22V54.11 M659.00,55.22h6 M659.00,54.11h6" stroke="#2563eb" fill="none"/>
+<circle cx="662.00" cy="54.66" r="4" fill="#2563eb"><title>random-level; n=8000; mean_depth=18.8344; SE=0.14759376574740538</title></circle>
+<circle cx="22" cy="331" r="4" fill="#2563eb"/><text x="32" y="335">random-level</text>
+<text x="22" y="422" style="font-size:10px">x: log(keys) · y: log(1 + value) · missing groups omitted · whiskers: ±1 SE</text>
+</svg>

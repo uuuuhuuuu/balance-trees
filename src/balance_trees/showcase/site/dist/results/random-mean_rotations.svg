@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 433" role="img" aria-labelledby="title desc"><title id="title">Random · Rotations / key</title>
-<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>
+<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). A dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>
 <style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>
 <rect width="690" height="433" rx="14" fill="white"/>
 <text x="22" y="26" style="font-size:15px;font-weight:650">Random · Rotations / key</text>
 <line class="grid" x1="67" x2="662" y1="279.00" y2="279.00"/>
 <text x="58" y="283.00" text-anchor="end">0</text>
 <line class="grid" x1="67" x2="662" y1="220.75" y2="220.75"/>
-<text x="58" y="224.75" text-anchor="end">0.7</text>
+<text x="58" y="224.75" text-anchor="end">1.08</text>
 <line class="grid" x1="67" x2="662" y1="162.50" y2="162.50"/>
-<text x="58" y="166.50" text-anchor="end">1.89</text>
+<text x="58" y="166.50" text-anchor="end">3.35</text>
 <line class="grid" x1="67" x2="662" y1="104.25" y2="104.25"/>
-<text x="58" y="108.25" text-anchor="end">3.91</text>
+<text x="58" y="108.25" text-anchor="end">8.06</text>
 <line class="grid" x1="67" x2="662" y1="46.00" y2="46.00"/>
-<text x="58" y="50.00" text-anchor="end">7.34</text>
+<text x="58" y="50.00" text-anchor="end">17.9</text>
 <line class="grid" x1="67.00" x2="67.00" y1="46" y2="279"/>
 <text x="67.00" y="301" text-anchor="middle">1,000</text>
 <line class="grid" x1="265.33" x2="265.33" y1="46" y2="279"/>
@@ -21,38 +21,40 @@
 <text x="463.67" y="301" text-anchor="middle">16,000</text>
 <line class="grid" x1="662.00" x2="662.00" y1="46" y2="279"/>
 <text x="662.00" y="301" text-anchor="middle">64,000</text>
-<path d="M67.00,205.32V202.83 M64.00,205.32h6 M64.00,202.83h6" stroke="#2563eb" fill="none"/>
-<circle cx="67.00" cy="204.07" r="4" fill="#2563eb"><title>halving; n=1000; mean_rotations=0.978333; SE=0.022407835931011068</title></circle>
-<path d="M67.00,204.07 L265.33,203.22" stroke="#2563eb" stroke-width="2" fill="none"/>
-<path d="M265.33,203.80V202.64 M262.33,203.80h6 M262.33,202.64h6" stroke="#2563eb" fill="none"/>
-<circle cx="265.33" cy="203.22" r="4" fill="#2563eb"><title>halving; n=4000; mean_rotations=0.993667; SE=0.010488419539875622</title></circle>
-<path d="M265.33,203.22 L463.67,203.06" stroke="#2563eb" stroke-width="2" fill="none"/>
-<path d="M463.67,203.09V203.02 M460.67,203.09h6 M460.67,203.02h6" stroke="#2563eb" fill="none"/>
-<circle cx="463.67" cy="203.06" r="4" fill="#2563eb"><title>halving; n=16000; mean_rotations=0.996563; SE=0.0006525191568069041</title></circle>
+<path class="log-reference" d="M67.00,89.09 L72.95,88.66 L78.90,88.23 L84.85,87.80 L90.80,87.38 L96.75,86.95 L102.70,86.53 L108.65,86.11 L114.60,85.70 L120.55,85.28 L126.50,84.87 L132.45,84.46 L138.40,84.05 L144.35,83.64 L150.30,83.24 L156.25,82.84 L162.20,82.44 L168.15,82.04 L174.10,81.64 L180.05,81.25 L186.00,80.86 L191.95,80.47 L197.90,80.08 L203.85,79.69 L209.80,79.31 L215.75,78.93 L221.70,78.55 L227.65,78.17 L233.60,77.79 L239.55,77.41 L245.50,77.04 L251.45,76.67 L257.40,76.30 L263.35,75.93 L269.30,75.56 L275.25,75.20 L281.20,74.83 L287.15,74.47 L293.10,74.11 L299.05,73.75 L305.00,73.40 L310.95,73.04 L316.90,72.69 L322.85,72.34 L328.80,71.99 L334.75,71.64 L340.70,71.29 L346.65,70.94 L352.60,70.60 L358.55,70.26 L364.50,69.92 L370.45,69.58 L376.40,69.24 L382.35,68.90 L388.30,68.56 L394.25,68.23 L400.20,67.90 L406.15,67.57 L412.10,67.24 L418.05,66.91 L424.00,66.58 L429.95,66.25 L435.90,65.93 L441.85,65.61 L447.80,65.28 L453.75,64.96 L459.70,64.64 L465.65,64.33 L471.60,64.01 L477.55,63.69 L483.50,63.38 L489.45,63.07 L495.40,62.75 L501.35,62.44 L507.30,62.13 L513.25,61.83 L519.20,61.52 L525.15,61.21 L531.10,60.91 L537.05,60.60 L543.00,60.30 L548.95,60.00 L554.90,59.70 L560.85,59.40 L566.80,59.10 L572.75,58.81 L578.70,58.51 L584.65,58.22 L590.60,57.92 L596.55,57.63 L602.50,57.34 L608.45,57.05 L614.40,56.76 L620.35,56.47 L626.30,56.19 L632.25,55.90 L638.20,55.61 L644.15,55.33 L650.10,55.05 L656.05,54.77 L662.00,54.48" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>
+<text x="656" y="45.48" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>
+<path d="M67.00,225.80V224.00 M64.00,225.80h6 M64.00,224.00h6" stroke="#2563eb" fill="none"/>
+<circle cx="67.00" cy="224.90" r="4" fill="#2563eb"><title>halving; n=1000; mean_rotations=0.978333; SE=0.022407835931011068</title></circle>
+<path d="M67.00,224.90 L265.33,224.28" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M265.33,224.70V223.87 M262.33,224.70h6 M262.33,223.87h6" stroke="#2563eb" fill="none"/>
+<circle cx="265.33" cy="224.28" r="4" fill="#2563eb"><title>halving; n=4000; mean_rotations=0.993667; SE=0.010488419539875622</title></circle>
+<path d="M265.33,224.28 L463.67,224.17" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M463.67,224.20V224.14 M460.67,224.20h6 M460.67,224.14h6" stroke="#2563eb" fill="none"/>
+<circle cx="463.67" cy="224.17" r="4" fill="#2563eb"><title>halving; n=16000; mean_rotations=0.996563; SE=0.0006525191568069041</title></circle>
 <circle cx="22" cy="331" r="4" fill="#2563eb"/><text x="32" y="335">halving</text>
-<path d="M67.00,107.85V106.51 M64.00,107.85h6 M64.00,106.51h6" stroke="#d97706" fill="none"/>
-<circle cx="67.00" cy="107.18" r="4" fill="#d97706"><title>constant-half; n=1000; mean_rotations=3.77967; SE=0.029236582867663806</title></circle>
-<path d="M67.00,107.18 L265.33,88.07" stroke="#d97706" stroke-width="2" fill="none"/>
-<path d="M265.33,88.40V87.74 M262.33,88.40h6 M262.33,87.74h6" stroke="#d97706" fill="none"/>
-<circle cx="265.33" cy="88.07" r="4" fill="#d97706"><title>constant-half; n=4000; mean_rotations=4.68775; SE=0.017126368558454026</title></circle>
-<path d="M265.33,88.07 L463.67,71.34" stroke="#d97706" stroke-width="2" fill="none"/>
-<path d="M463.67,71.48V71.20 M460.67,71.48h6 M460.67,71.20h6" stroke="#d97706" fill="none"/>
-<circle cx="463.67" cy="71.34" r="4" fill="#d97706"><title>constant-half; n=16000; mean_rotations=5.62392; SE=0.008556820906608769</title></circle>
-<path d="M463.67,71.34 L662.00,56.93" stroke="#d97706" stroke-width="2" fill="none"/>
-<path d="M662.00,56.99V56.88 M659.00,56.99h6 M659.00,56.88h6" stroke="#d97706" fill="none"/>
-<circle cx="662.00" cy="56.93" r="4" fill="#d97706"><title>constant-half; n=64000; mean_rotations=6.5521; SE=0.0038282879783899377</title></circle>
+<path d="M67.00,155.43V154.46 M64.00,155.43h6 M64.00,154.46h6" stroke="#d97706" fill="none"/>
+<circle cx="67.00" cy="154.94" r="4" fill="#d97706"><title>constant-half; n=1000; mean_rotations=3.77967; SE=0.029236582867663806</title></circle>
+<path d="M67.00,154.94 L265.33,141.15" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M265.33,141.39V140.91 M262.33,141.39h6 M262.33,140.91h6" stroke="#d97706" fill="none"/>
+<circle cx="265.33" cy="141.15" r="4" fill="#d97706"><title>constant-half; n=4000; mean_rotations=4.68775; SE=0.017126368558454026</title></circle>
+<path d="M265.33,141.15 L463.67,129.07" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M463.67,129.17V128.97 M460.67,129.17h6 M460.67,128.97h6" stroke="#d97706" fill="none"/>
+<circle cx="463.67" cy="129.07" r="4" fill="#d97706"><title>constant-half; n=16000; mean_rotations=5.62392; SE=0.008556820906608769</title></circle>
+<path d="M463.67,129.07 L662.00,118.67" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M662.00,118.71V118.63 M659.00,118.71h6 M659.00,118.63h6" stroke="#d97706" fill="none"/>
+<circle cx="662.00" cy="118.67" r="4" fill="#d97706"><title>constant-half; n=64000; mean_rotations=6.5521; SE=0.0038282879783899377</title></circle>
 <circle cx="245" cy="331" r="4" fill="#d97706"/><text x="255" y="335">constant-half</text>
-<path d="M67.00,207.90V207.38 M64.00,207.90h6 M64.00,207.38h6" stroke="#7c3aed" fill="none"/>
-<circle cx="67.00" cy="207.64" r="4" fill="#7c3aed"><title>inverse-depth; n=1000; mean_rotations=0.915; SE=0.004582575694955845</title></circle>
-<path d="M67.00,207.64 L265.33,207.22" stroke="#7c3aed" stroke-width="2" fill="none"/>
-<path d="M265.33,207.96V206.49 M262.33,207.96h6 M262.33,206.49h6" stroke="#7c3aed" fill="none"/>
-<circle cx="265.33" cy="207.22" r="4" fill="#7c3aed"><title>inverse-depth; n=4000; mean_rotations=0.922333; SE=0.0128455028879544</title></circle>
-<path d="M265.33,207.22 L463.67,206.58" stroke="#7c3aed" stroke-width="2" fill="none"/>
-<path d="M463.67,206.84V206.31 M460.67,206.84h6 M460.67,206.31h6" stroke="#7c3aed" fill="none"/>
-<circle cx="463.67" cy="206.58" r="4" fill="#7c3aed"><title>inverse-depth; n=16000; mean_rotations=0.933625; SE=0.0047140912432832565</title></circle>
-<path d="M463.67,206.58 L662.00,205.69" stroke="#7c3aed" stroke-width="2" fill="none"/>
-<path d="M662.00,205.80V205.58 M659.00,205.80h6 M659.00,205.58h6" stroke="#7c3aed" fill="none"/>
-<circle cx="662.00" cy="205.69" r="4" fill="#7c3aed"><title>inverse-depth; n=64000; mean_rotations=0.94926; SE=0.0019085610421823186</title></circle>
+<path d="M67.00,227.67V227.29 M64.00,227.67h6 M64.00,227.29h6" stroke="#7c3aed" fill="none"/>
+<circle cx="67.00" cy="227.48" r="4" fill="#7c3aed"><title>inverse-depth; n=1000; mean_rotations=0.915; SE=0.004582575694955845</title></circle>
+<path d="M67.00,227.48 L265.33,227.17" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M265.33,227.71V226.65 M262.33,227.71h6 M262.33,226.65h6" stroke="#7c3aed" fill="none"/>
+<circle cx="265.33" cy="227.17" r="4" fill="#7c3aed"><title>inverse-depth; n=4000; mean_rotations=0.922333; SE=0.0128455028879544</title></circle>
+<path d="M265.33,227.17 L463.67,226.71" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M463.67,226.90V226.52 M460.67,226.90h6 M460.67,226.52h6" stroke="#7c3aed" fill="none"/>
+<circle cx="463.67" cy="226.71" r="4" fill="#7c3aed"><title>inverse-depth; n=16000; mean_rotations=0.933625; SE=0.0047140912432832565</title></circle>
+<path d="M463.67,226.71 L662.00,226.07" stroke="#7c3aed" stroke-width="2" fill="none"/>
+<path d="M662.00,226.15V225.99 M659.00,226.15h6 M659.00,225.99h6" stroke="#7c3aed" fill="none"/>
+<circle cx="662.00" cy="226.07" r="4" fill="#7c3aed"><title>inverse-depth; n=64000; mean_rotations=0.94926; SE=0.0019085610421823186</title></circle>
 <circle cx="468" cy="331" r="4" fill="#7c3aed"/><text x="478" y="335">inverse-depth</text>
 <path d="M67.00,279.00V279.00 M64.00,279.00h6 M64.00,279.00h6" stroke="#475569" fill="none"/>
 <circle cx="67.00" cy="279.00" r="4" fill="#475569"><title>none; n=1000; mean_rotations=0; SE=0.0</title></circle>
@@ -66,71 +68,71 @@
 <path d="M662.00,279.00V279.00 M659.00,279.00h6 M659.00,279.00h6" stroke="#475569" fill="none"/>
 <circle cx="662.00" cy="279.00" r="4" fill="#475569"><title>none; n=64000; mean_rotations=0; SE=0.0</title></circle>
 <circle cx="22" cy="353" r="4" fill="#475569"/><text x="32" y="357">none</text>
-<path d="M67.00,203.25V203.11 M64.00,203.25h6 M64.00,203.11h6" stroke="#db2777" fill="none"/>
-<circle cx="67.00" cy="203.18" r="4" fill="#db2777"><title>paper-zig; n=1000; mean_rotations=0.994333; SE=0.0012018504251546643</title></circle>
-<path d="M67.00,203.18 L265.33,203.02" stroke="#db2777" stroke-width="2" fill="none"/>
-<path d="M265.33,203.03V203.01 M262.33,203.03h6 M262.33,203.01h6" stroke="#db2777" fill="none"/>
-<circle cx="265.33" cy="203.02" r="4" fill="#db2777"><title>paper-zig; n=4000; mean_rotations=0.99725; SE=0.0002500000000000095</title></circle>
-<path d="M265.33,203.02 L463.67,202.89" stroke="#db2777" stroke-width="2" fill="none"/>
-<path d="M463.67,202.90V202.89 M460.67,202.90h6 M460.67,202.89h6" stroke="#db2777" fill="none"/>
-<circle cx="463.67" cy="202.89" r="4" fill="#db2777"><title>paper-zig; n=16000; mean_rotations=0.999542; SE=4.166666666664357e-05</title></circle>
-<path d="M463.67,202.89 L662.00,202.88" stroke="#db2777" stroke-width="2" fill="none"/>
-<path d="M662.00,202.88V202.88 M659.00,202.88h6 M659.00,202.88h6" stroke="#db2777" fill="none"/>
-<circle cx="662.00" cy="202.88" r="4" fill="#db2777"><title>paper-zig; n=64000; mean_rotations=0.999833; SE=2.0833333333321786e-05</title></circle>
+<path d="M67.00,224.31V224.21 M64.00,224.31h6 M64.00,224.21h6" stroke="#db2777" fill="none"/>
+<circle cx="67.00" cy="224.26" r="4" fill="#db2777"><title>paper-zig; n=1000; mean_rotations=0.994333; SE=0.0012018504251546643</title></circle>
+<path d="M67.00,224.26 L265.33,224.14" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M265.33,224.15V224.13 M262.33,224.15h6 M262.33,224.13h6" stroke="#db2777" fill="none"/>
+<circle cx="265.33" cy="224.14" r="4" fill="#db2777"><title>paper-zig; n=4000; mean_rotations=0.99725; SE=0.0002500000000000095</title></circle>
+<path d="M265.33,224.14 L463.67,224.05" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M463.67,224.05V224.05 M460.67,224.05h6 M460.67,224.05h6" stroke="#db2777" fill="none"/>
+<circle cx="463.67" cy="224.05" r="4" fill="#db2777"><title>paper-zig; n=16000; mean_rotations=0.999542; SE=4.166666666664357e-05</title></circle>
+<path d="M463.67,224.05 L662.00,224.04" stroke="#db2777" stroke-width="2" fill="none"/>
+<path d="M662.00,224.04V224.04 M659.00,224.04h6 M659.00,224.04h6" stroke="#db2777" fill="none"/>
+<circle cx="662.00" cy="224.04" r="4" fill="#db2777"><title>paper-zig; n=64000; mean_rotations=0.999833; SE=2.0833333333321786e-05</title></circle>
 <circle cx="245" cy="353" r="4" fill="#db2777"/><text x="255" y="357">paper-zig</text>
-<path d="M67.00,187.67V185.64 M64.00,187.67h6 M64.00,185.64h6" stroke="#0891b2" fill="none"/>
-<circle cx="67.00" cy="186.65" r="4" fill="#0891b2"><title>paper-zigzag; n=1000; mean_rotations=1.31833; SE=0.021426878239984282</title></circle>
-<path d="M67.00,186.65 L265.33,183.03" stroke="#0891b2" stroke-width="2" fill="none"/>
-<path d="M265.33,183.14V182.93 M262.33,183.14h6 M262.33,182.93h6" stroke="#0891b2" fill="none"/>
-<circle cx="265.33" cy="183.03" r="4" fill="#0891b2"><title>paper-zigzag; n=4000; mean_rotations=1.39583; SE=0.002256164395113452</title></circle>
-<path d="M265.33,183.03 L463.67,181.18" stroke="#0891b2" stroke-width="2" fill="none"/>
-<path d="M463.67,181.23V181.13 M460.67,181.23h6 M460.67,181.13h6" stroke="#0891b2" fill="none"/>
-<circle cx="463.67" cy="181.18" r="4" fill="#0891b2"><title>paper-zigzag; n=16000; mean_rotations=1.43656; SE=0.0010758959444729286</title></circle>
-<path d="M463.67,181.18 L662.00,180.45" stroke="#0891b2" stroke-width="2" fill="none"/>
-<path d="M662.00,180.53V180.37 M659.00,180.53h6 M659.00,180.37h6" stroke="#0891b2" fill="none"/>
-<circle cx="662.00" cy="180.45" r="4" fill="#0891b2"><title>paper-zigzag; n=64000; mean_rotations=1.45288; SE=0.0018539033052664125</title></circle>
+<path d="M67.00,213.06V211.59 M64.00,213.06h6 M64.00,211.59h6" stroke="#0891b2" fill="none"/>
+<circle cx="67.00" cy="212.32" r="4" fill="#0891b2"><title>paper-zigzag; n=1000; mean_rotations=1.31833; SE=0.021426878239984282</title></circle>
+<path d="M67.00,212.32 L265.33,209.71" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M265.33,209.79V209.64 M262.33,209.79h6 M262.33,209.64h6" stroke="#0891b2" fill="none"/>
+<circle cx="265.33" cy="209.71" r="4" fill="#0891b2"><title>paper-zigzag; n=4000; mean_rotations=1.39583; SE=0.002256164395113452</title></circle>
+<path d="M265.33,209.71 L463.67,208.38" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M463.67,208.41V208.34 M460.67,208.41h6 M460.67,208.34h6" stroke="#0891b2" fill="none"/>
+<circle cx="463.67" cy="208.38" r="4" fill="#0891b2"><title>paper-zigzag; n=16000; mean_rotations=1.43656; SE=0.0010758959444729286</title></circle>
+<path d="M463.67,208.38 L662.00,207.85" stroke="#0891b2" stroke-width="2" fill="none"/>
+<path d="M662.00,207.91V207.79 M659.00,207.91h6 M659.00,207.79h6" stroke="#0891b2" fill="none"/>
+<circle cx="662.00" cy="207.85" r="4" fill="#0891b2"><title>paper-zigzag; n=64000; mean_rotations=1.45288; SE=0.0018539033052664125</title></circle>
 <circle cx="468" cy="353" r="4" fill="#0891b2"/><text x="478" y="357">paper-zigzag</text>
-<path d="M67.00,162.27V157.93 M64.00,162.27h6 M64.00,157.93h6" stroke="#dc2626" fill="none"/>
-<circle cx="67.00" cy="160.08" r="4" fill="#dc2626"><title>recount-root; n=1000; mean_rotations=1.95267; SE=0.058313329903585814</title></circle>
-<path d="M67.00,160.08 L265.33,158.95" stroke="#dc2626" stroke-width="2" fill="none"/>
-<path d="M265.33,159.67V158.24 M262.33,159.67h6 M262.33,158.24h6" stroke="#dc2626" fill="none"/>
-<circle cx="265.33" cy="158.95" r="4" fill="#dc2626"><title>recount-root; n=4000; mean_rotations=1.98317; SE=0.019475590135118105</title></circle>
+<path d="M67.00,194.72V191.59 M64.00,194.72h6 M64.00,191.59h6" stroke="#dc2626" fill="none"/>
+<circle cx="67.00" cy="193.14" r="4" fill="#dc2626"><title>recount-root; n=1000; mean_rotations=1.95267; SE=0.058313329903585814</title></circle>
+<path d="M67.00,193.14 L265.33,192.33" stroke="#dc2626" stroke-width="2" fill="none"/>
+<path d="M265.33,192.85V191.81 M262.33,192.85h6 M262.33,191.81h6" stroke="#dc2626" fill="none"/>
+<circle cx="265.33" cy="192.33" r="4" fill="#dc2626"><title>recount-root; n=4000; mean_rotations=1.98317; SE=0.019475590135118105</title></circle>
 <circle cx="22" cy="375" r="4" fill="#dc2626"/><text x="32" y="379">recount-root</text>
-<path d="M67.00,169.84V167.77 M64.00,169.84h6 M64.00,167.77h6" stroke="#4d7c0f" fill="none"/>
-<circle cx="67.00" cy="168.80" r="4" fill="#4d7c0f"><title>window-root; n=1000; mean_rotations=1.72733; SE=0.025770353336947327</title></circle>
-<path d="M67.00,168.80 L265.33,167.09" stroke="#4d7c0f" stroke-width="2" fill="none"/>
-<path d="M265.33,167.87V166.32 M262.33,167.87h6 M262.33,166.32h6" stroke="#4d7c0f" fill="none"/>
-<circle cx="265.33" cy="167.09" r="4" fill="#4d7c0f"><title>window-root; n=4000; mean_rotations=1.77008; SE=0.019498575446540826</title></circle>
-<path d="M265.33,167.09 L463.67,168.12" stroke="#4d7c0f" stroke-width="2" fill="none"/>
-<path d="M463.67,168.39V167.84 M460.67,168.39h6 M460.67,167.84h6" stroke="#4d7c0f" fill="none"/>
-<circle cx="463.67" cy="168.12" r="4" fill="#4d7c0f"><title>window-root; n=16000; mean_rotations=1.74438; SE=0.006825198409814451</title></circle>
-<path d="M463.67,168.12 L662.00,167.58" stroke="#4d7c0f" stroke-width="2" fill="none"/>
-<path d="M662.00,167.75V167.40 M659.00,167.75h6 M659.00,167.40h6" stroke="#4d7c0f" fill="none"/>
-<circle cx="662.00" cy="167.58" r="4" fill="#4d7c0f"><title>window-root; n=64000; mean_rotations=1.75792; SE=0.004493216216752338</title></circle>
+<path d="M67.00,200.19V198.69 M64.00,200.19h6 M64.00,198.69h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="67.00" cy="199.44" r="4" fill="#4d7c0f"><title>window-root; n=1000; mean_rotations=1.72733; SE=0.025770353336947327</title></circle>
+<path d="M67.00,199.44 L265.33,198.20" stroke="#4d7c0f" stroke-width="2" fill="none"/>
+<path d="M265.33,198.76V197.65 M262.33,198.76h6 M262.33,197.65h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="265.33" cy="198.20" r="4" fill="#4d7c0f"><title>window-root; n=4000; mean_rotations=1.77008; SE=0.019498575446540826</title></circle>
+<path d="M265.33,198.20 L463.67,198.94" stroke="#4d7c0f" stroke-width="2" fill="none"/>
+<path d="M463.67,199.14V198.74 M460.67,199.14h6 M460.67,198.74h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="463.67" cy="198.94" r="4" fill="#4d7c0f"><title>window-root; n=16000; mean_rotations=1.74438; SE=0.006825198409814451</title></circle>
+<path d="M463.67,198.94 L662.00,198.55" stroke="#4d7c0f" stroke-width="2" fill="none"/>
+<path d="M662.00,198.68V198.42 M659.00,198.68h6 M659.00,198.42h6" stroke="#4d7c0f" fill="none"/>
+<circle cx="662.00" cy="198.55" r="4" fill="#4d7c0f"><title>window-root; n=64000; mean_rotations=1.75792; SE=0.004493216216752338</title></circle>
 <circle cx="245" cy="375" r="4" fill="#4d7c0f"/><text x="255" y="379">window-root</text>
-<path d="M67.00,160.35V159.13 M64.00,160.35h6 M64.00,159.13h6" stroke="#059669" fill="none"/>
-<circle cx="67.00" cy="159.73" r="4" fill="#059669"><title>hash-priority; n=1000; mean_rotations=1.962; SE=0.016441816606851387</title></circle>
-<path d="M67.00,159.73 L265.33,159.06" stroke="#059669" stroke-width="2" fill="none"/>
-<path d="M265.33,160.08V158.05 M262.33,160.08h6 M262.33,158.05h6" stroke="#059669" fill="none"/>
-<circle cx="265.33" cy="159.06" r="4" fill="#059669"><title>hash-priority; n=4000; mean_rotations=1.98025; SE=0.0275782976269385</title></circle>
-<path d="M265.33,159.06 L463.67,158.72" stroke="#059669" stroke-width="2" fill="none"/>
-<path d="M463.67,159.06V158.38 M460.67,159.06h6 M460.67,158.38h6" stroke="#059669" fill="none"/>
-<circle cx="463.67" cy="158.72" r="4" fill="#059669"><title>hash-priority; n=16000; mean_rotations=1.98948; SE=0.009274063107817348</title></circle>
-<path d="M463.67,158.72 L662.00,158.41" stroke="#059669" stroke-width="2" fill="none"/>
-<path d="M662.00,158.52V158.29 M659.00,158.52h6 M659.00,158.29h6" stroke="#059669" fill="none"/>
-<circle cx="662.00" cy="158.41" r="4" fill="#059669"><title>hash-priority; n=64000; mean_rotations=1.99798; SE=0.0031587285716307297</title></circle>
+<path d="M67.00,193.33V192.45 M64.00,193.33h6 M64.00,192.45h6" stroke="#059669" fill="none"/>
+<circle cx="67.00" cy="192.89" r="4" fill="#059669"><title>hash-priority; n=1000; mean_rotations=1.962; SE=0.016441816606851387</title></circle>
+<path d="M67.00,192.89 L265.33,192.40" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M265.33,193.14V191.67 M262.33,193.14h6 M262.33,191.67h6" stroke="#059669" fill="none"/>
+<circle cx="265.33" cy="192.40" r="4" fill="#059669"><title>hash-priority; n=4000; mean_rotations=1.98025; SE=0.0275782976269385</title></circle>
+<path d="M265.33,192.40 L463.67,192.16" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M463.67,192.40V191.91 M460.67,192.40h6 M460.67,191.91h6" stroke="#059669" fill="none"/>
+<circle cx="463.67" cy="192.16" r="4" fill="#059669"><title>hash-priority; n=16000; mean_rotations=1.98948; SE=0.009274063107817348</title></circle>
+<path d="M463.67,192.16 L662.00,191.93" stroke="#059669" stroke-width="2" fill="none"/>
+<path d="M662.00,192.02V191.85 M659.00,192.02h6 M659.00,191.85h6" stroke="#059669" fill="none"/>
+<circle cx="662.00" cy="191.93" r="4" fill="#059669"><title>hash-priority; n=64000; mean_rotations=1.99798; SE=0.0031587285716307297</title></circle>
 <circle cx="468" cy="375" r="4" fill="#059669"/><text x="478" y="379">hash-priority</text>
-<path d="M67.00,96.83V86.67 M64.00,96.83h6 M64.00,86.67h6" stroke="#9333ea" fill="none"/>
-<circle cx="67.00" cy="91.63" r="4" fill="#9333ea"><title>random-level; n=1000; mean_rotations=4.50633; SE=0.25438378704451875</title></circle>
-<path d="M67.00,91.63 L265.33,85.54" stroke="#9333ea" stroke-width="2" fill="none"/>
-<path d="M265.33,88.81V82.36 M262.33,88.81h6 M262.33,82.36h6" stroke="#9333ea" fill="none"/>
-<circle cx="265.33" cy="85.54" r="4" fill="#9333ea"><title>random-level; n=4000; mean_rotations=4.82067; SE=0.17099490327037364</title></circle>
-<path d="M265.33,85.54 L463.67,74.82" stroke="#9333ea" stroke-width="2" fill="none"/>
-<path d="M463.67,75.61V74.04 M460.67,75.61h6 M460.67,74.04h6" stroke="#9333ea" fill="none"/>
-<circle cx="463.67" cy="74.82" r="4" fill="#9333ea"><title>random-level; n=16000; mean_rotations=5.41731; SE=0.04581660679637181</title></circle>
-<path d="M463.67,74.82 L662.00,61.80" stroke="#9333ea" stroke-width="2" fill="none"/>
-<path d="M662.00,62.37V61.24 M659.00,62.37h6 M659.00,61.24h6" stroke="#9333ea" fill="none"/>
-<circle cx="662.00" cy="61.80" r="4" fill="#9333ea"><title>random-level; n=64000; mean_rotations=6.22466; SE=0.03690584463567488</title></circle>
+<path d="M67.00,147.47V140.14 M64.00,147.47h6 M64.00,140.14h6" stroke="#9333ea" fill="none"/>
+<circle cx="67.00" cy="143.72" r="4" fill="#9333ea"><title>random-level; n=1000; mean_rotations=4.50633; SE=0.25438378704451875</title></circle>
+<path d="M67.00,143.72 L265.33,139.32" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M265.33,141.68V137.02 M262.33,141.68h6 M262.33,137.02h6" stroke="#9333ea" fill="none"/>
+<circle cx="265.33" cy="139.32" r="4" fill="#9333ea"><title>random-level; n=4000; mean_rotations=4.82067; SE=0.17099490327037364</title></circle>
+<path d="M265.33,139.32 L463.67,131.58" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M463.67,132.15V131.02 M460.67,132.15h6 M460.67,131.02h6" stroke="#9333ea" fill="none"/>
+<circle cx="463.67" cy="131.58" r="4" fill="#9333ea"><title>random-level; n=16000; mean_rotations=5.41731; SE=0.04581660679637181</title></circle>
+<path d="M463.67,131.58 L662.00,122.18" stroke="#9333ea" stroke-width="2" fill="none"/>
+<path d="M662.00,122.59V121.78 M659.00,122.59h6 M659.00,121.78h6" stroke="#9333ea" fill="none"/>
+<circle cx="662.00" cy="122.18" r="4" fill="#9333ea"><title>random-level; n=64000; mean_rotations=6.22466; SE=0.03690584463567488</title></circle>
 <circle cx="22" cy="397" r="4" fill="#9333ea"/><text x="32" y="401">random-level</text>
 <text x="22" y="425" style="font-size:10px">x: log(keys) · y: log(1 + value) · missing groups omitted · whiskers: ±1 SE</text>
 </svg>

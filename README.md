@@ -39,13 +39,18 @@ extension points, and exporting another implementation.
 
 ### Local benchmark graphs and compact results
 
-The showcase includes two additional static pages, linked from its sidebar:
+The showcase includes three additional static pages, linked from its sidebar:
 
 - **[Benchmark graphs](src/balance_trees/showcase/site/dist/results.html)**:
   seven workload families, seven metrics, scalable SVG graphs, error bars,
   measurement tables, and downloads.
 - **[All results](src/balance_trees/showcase/site/dist/summary.html)**:
   compact bullet points for every strategy/workload, plus the complete matrix.
+- **[Random-level · thousands](src/balance_trees/showcase/site/dist/random-level.html)**:
+  a separate run at 1,000, 2,000, 4,000 and 8,000 keys, with five trials for each
+  of the seven input families (140 completed trials). Its data and downloads
+  are separate from the original comparison. Every graph includes a muted
+  dashed log₂(n) reference behind the measured curves.
 
 These pages contain measurements from this computer for **all ten Python
 strategies**, at **1,000, 4,000, 16,000 and 64,000 keys**, with three requested
@@ -60,6 +65,7 @@ registered Python strategies timed here.
 PYTHONPATH=src python3 -m balance_trees.showcase --port 8000
 # http://127.0.0.1:8000/results.html
 # http://127.0.0.1:8000/summary.html
+# http://127.0.0.1:8000/random-level.html
 
 # Reproduce measurements in a NEW output directory, then regenerate the pages.
 PYTHONPATH=src python3 -m balance_trees.benchmark \
@@ -68,6 +74,14 @@ PYTHONPATH=src python3 -m balance_trees.benchmark \
 PYTHONPATH=src python3 -m balance_trees.benchmark_report \
   --input benchmarks/results/my-large-run \
   --output src/balance_trees/showcase/site/dist
+
+# Add the focused random-level page without replacing the comparison results.
+PYTHONPATH=src python3 -m balance_trees.benchmark \
+  --sizes 1000 2000 4000 8000 --trials 5 --seed 2026 --timeout 10 \
+  --strategies random-level --output benchmarks/results/my-random-level-run
+PYTHONPATH=src python3 -m balance_trees.benchmark_report \
+  --input benchmarks/results/my-random-level-run \
+  --output src/balance_trees/showcase/site/dist --random-level
 
 # Build a portable static copy, including every graph and data download.
 PYTHONPATH=src python3 -m balance_trees.showcase.build --output _site
