@@ -71,8 +71,7 @@ class ShowcaseTraceTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     sum(
-                        frame["kind"]
-                        in ({"priority"} if name == "hash-priority" else {"coin"})
+                        frame["kind"] in {"priority", "coin", "visit"}
                         for frame in trace["frames"]
                     ),
                     visits,

@@ -21,9 +21,11 @@ static pages and their CSV/JSON downloads.
 ## Reproduce
 
 Python 3.11+ and the standard library are sufficient. Run from the repository
-root. The default profile requests 840 trials: ten strategies, seven orders,
+root. The recorded profile requested 840 trials: ten strategies, seven orders,
 four sizes (1,000 / 4,000 / 16,000 / 64,000), three trial seeds. Every output
 directory must be new, so rerunning cannot erase a previous measurement.
+The current default additionally includes `random-level-v2` (924 planned trials).
+The recorded pages and datasets retain their original ten-strategy measurements.
 
 ```sh
 PYTHONPATH=src python3 -m balance_trees.benchmark \
@@ -51,7 +53,8 @@ For longer experiments increase `--timeout`, `--trials` and/or `--sizes`.
 - Every completed tree passes the existing ordering, parent-link, cycle and
   key-set checks. Root depth is zero. Group metrics are trial means; `max_*`
   metrics are maxima across completed trials.
-- Decisions count coin sites and heap comparisons. The deterministic target-band
+- Decisions count coin sites and heap comparisons; `random-level-v2` also counts
+  deterministic ancestor visits and the selected repair inspection. The target-band
   arithmetic in `random-level` is reflected in its bits, rotations and timing;
   it adds no coin-site or heap-comparison visits. Scans count actual transient
   recount inspections, separately from ordinary BST search.
@@ -138,6 +141,14 @@ The report command without `--random-level` still regenerates the original
 comparison pages and leaves the dedicated page and its measurements intact.
 
 ## Review of `random-level`
+
+The original policy and its measurements are preserved. The separate
+[`random-level-v2` policy](random-level-v2.md) addresses growing leaf-promotion
+costs using local repairs and has an expected-rotation bound. Select the version
+explicitly when benchmarking; the existing `/random-level.html` page contains
+the original version's measurements.
+The separate `/random-level-v2.html` page presents the new policy, expected
+rotation bound, paired reports for all seven workloads and downloadable data.
 
 The review fixed two algorithm defects and a missing browser implementation:
 

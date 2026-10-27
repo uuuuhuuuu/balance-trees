@@ -145,6 +145,15 @@ class TraceContext(RebalanceContext):
         )
         self.recorder = recorder
 
+    def visit(self, node: Node) -> None:
+        super().visit(node)
+        self.recorder.capture(
+            "visit",
+            f"Inspect ancestor {node.key}",
+            "Find the sampled repair level; repair a straight path once or a bent path twice.",
+            focus=node.key,
+        )
+
     def scan(self, node: Node) -> None:
         super().scan(node)
         self.recorder.capture(

@@ -10,3 +10,7 @@ graphs shipped with the website are in
 
 See [methodology and reproduction](../docs/benchmarks.md). Correctness tests are
 separate in `tests/`; a small subprocess test checks the benchmark/report pipeline.
+
+`random-level-v2/` retains the separate policy's 63-trial validation, group
+summaries and comparisons against paired trials from the original dataset.
+See [the policy, bound and reproduction instructions](../docs/random-level-v2.md).

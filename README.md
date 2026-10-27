@@ -10,7 +10,7 @@ are included as baselines; the halving walk is a separate experimental strategy.
 
 ## Interactive showcase
 
-Rotation Lab is a separate visual guide with treaps and all ten experimental
+Rotation Lab is a separate visual guide with treaps and all eleven experimental
 BST flavors. It shows search comparisons, leaf insertion, coin decisions, and
 the state before and after every primitive rotation. Play, pause, step backward,
 jump to the next rotation or insertion, pan, and zoom. The interface has dark/light
@@ -39,7 +39,7 @@ extension points, and exporting another implementation.
 
 ### Local benchmark graphs and compact results
 
-The showcase includes three additional static pages, linked from its sidebar:
+The showcase includes four additional static pages, linked from its sidebar:
 
 - **[Benchmark graphs](src/balance_trees/showcase/site/dist/results.html)**:
   seven workload families, seven metrics, scalable SVG graphs, error bars,
@@ -52,8 +52,11 @@ The showcase includes three additional static pages, linked from its sidebar:
   The original 140 trials are preserved alongside 140 larger trials. Its data and downloads
   are separate from the original comparison. Every graph includes a muted
   dashed log₂(n) reference behind the measured curves.
+- **[Random-level v2 · policy and reports](src/balance_trees/showcase/site/dist/random-level-v2.html)**:
+  policy description, expected rotation bound, paired comparisons with the
+  original at 1,000, 16,000 and 128,000 keys, tables and downloadable reports.
 
-These pages contain measurements from this computer for **all ten Python
+These pages contain measurements from this computer for the **original ten Python
 strategies**, at **1,000, 4,000, 16,000 and 64,000 keys**, with three requested
 trials per group and seed 2026. Every group and every trial has an explicit
 status; a three-second subprocess deadline prevents a quadratic strategy from
@@ -67,6 +70,7 @@ PYTHONPATH=src python3 -m balance_trees.showcase --port 8000
 # http://127.0.0.1:8000/results.html
 # http://127.0.0.1:8000/summary.html
 # http://127.0.0.1:8000/random-level.html
+# http://127.0.0.1:8000/random-level-v2.html
 
 # Reproduce measurements in a NEW output directory, then regenerate the pages.
 PYTHONPATH=src python3 -m balance_trees.benchmark \
@@ -95,6 +99,9 @@ PYTHONPATH=src python3 -m balance_trees.benchmark_report \
   --input benchmarks/results/my-random-level-combined \
   --output src/balance_trees/showcase/site/dist --random-level
 
+# Regenerate the separate v2 report from the tracked validation artifacts.
+PYTHONPATH=src python3 -m balance_trees.random_level_report \
+  --output src/balance_trees/showcase/site/dist
 # Build a portable static copy, including every graph and data download.
 PYTHONPATH=src python3 -m balance_trees.showcase.build --output _site
 ```
@@ -180,6 +187,18 @@ Four new flavors explore the insertion-cost tradeoff:
 - `random-level`: draws a 64-bit priority and chooses a depth from the previous
   priority interval; retains only a count and two extrema outside the tree.
 
+For `random-level`, if the sampled depth is equal to or deeper than the new
+leaf's insertion depth, the leaf stays in place with zero rotations. Otherwise
+it rotates upward exactly `insertion_depth - sampled_depth` times. The random
+draw and interval-state update still happen when no rotation is needed.
+
+The original `random-level` remains available unchanged. A separate
+`random-level-v2` uses the same sampler to locate a local repair, with at most
+two rotations on non-record insertions and full promotion on strict new minima.
+It has expected fewer than three rotations per insertion from empty under iid
+uniform rolls; ancestor walks can still be long and logarithmic depth is
+unproved. See [the investigation, policy and bound](docs/random-level-v2.md).
+
 All are available in the CLI and visualizer. No fields were added to `Node` or
 `BST`. Reports now include `Scans/ins` to expose counting work. See the
 [plan, algorithms, guarantees, and completed comparison](docs/priority-free-strategies.md).
@@ -207,6 +226,7 @@ src/balance_trees/
     __init__.py       CLI flavor registry (factories, not shared instances)
     registry.py       Strategy descriptors, configurable factories, display metadata
     random_level.py   Stateful interval-to-depth heuristic (64 logical bits/key)
+    random_level_v2.py  Separate local-repair policy with a constant expected rotation bound
   random_bits.py      Exact rational coins; counted logical fair bits
   metrics.py          Insertion and trial measurements outside the tree
   sequences.py        Seven reproducible insertion-order families
@@ -336,6 +356,7 @@ Available CLI flavors:
 | `window-root` | Root lotteries within 64 structural inspections |
 | `hash-priority` | Treap-style promotion with recomputed key/seed hashes |
 | `random-level` | Draw 64 bits; choose target depth from the previous priority interval |
+| `random-level-v2` | Same level sampler; local path repair, full leaf promotion only for strict new minima |
 
 All three full walks share the same traversal: after a successful promotion,
 move to the promoted node's new parent; after failure, move to its existing

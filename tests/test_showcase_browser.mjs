@@ -205,6 +205,61 @@ test('recomputed priorities match Python exactly without storing node priorities
   }
 });
 
+test('both random-level versions match Python for an identical 64-bit priority stream', async () => {
+  const { LargeTree } = await import('../src/balance_trees/showcase/site/dist/large-model.mjs');
+  const keys = [0, 20, 1, 19, 2, 18, 3, 17, 4, 16, 5, 15, 6, 14, 7, 13, 8, 12, 9, 11, 10, 10, -1];
+  const priorities = [100n, 200n, 300n, 400n, 500n, 600n, 700n, 800n, 250n, 50n, 50n, (1n << 64n) - 1n, 1n << 63n, 51n, 0n, 0n, 1n, 2n, 1n << 62n, 20n, 21n, 10n];
+  const code = `
+import json, sys
+from balance_trees import TreeFlavor
+class Bits:
+    def __init__(self, values):
+        self.count = 0
+        self.stream = iter(int(b) for v in values for b in f"{int(v):064b}")
+    def bit(self):
+        self.count += 1
+        return next(self.stream)
+data = json.loads(sys.argv[1])
+result = {}
+for name in ("random-level", "random-level-v2"):
+    flavor = TreeFlavor.create(name)
+    flavor.bits = Bits(data["priorities"])
+    frames = []
+    for key in data["keys"]:
+        stats = flavor.insert(key)
+        nodes, stack = [], [flavor.tree.root]
+        while stack:
+            n = stack.pop()
+            nodes.append([n.key, n.left.key if n.left else None, n.right.key if n.right else None])
+            stack.extend(c for c in (n.left, n.right) if c)
+        frames.append({"nodes": sorted(nodes), "rotations": stats.rotations, "visits": stats.visits, "bits": flavor.bits.count})
+    result[name] = frames
+print(json.dumps(result))
+`;
+  const process = spawnSync(globalThis.process.env.PYTHON ?? 'python3', ['-c', code, JSON.stringify({ keys, priorities: priorities.map(String) })], {
+    encoding: 'utf8', timeout: 10000,
+    env: { ...globalThis.process.env, PYTHONPATH: 'src' },
+  });
+  assert.equal(process.status, 0, process.stderr);
+  for (const [strategy, expected] of Object.entries(JSON.parse(process.stdout))) {
+    const tree = new LargeTree({ strategy, sequence: keys, seed: 2026 });
+    const bits = priorities.flatMap(p => p.toString(2).padStart(64, '0').split('').map(Number));
+    let bit = 0, insertion = 0, visits = 0;
+    tree.random = () => { assert.ok(bit < bits.length); return bits[bit++]; };
+    while (tree.advance()) if (tree.current.kind === 'settled') {
+      const frame = tree.snapshot(), row = expected[insertion++];
+      const nodes = frame.nodes.map(n => [n.key, n.left, n.right]).sort((a, b) => a[0] - b[0]);
+      assert.deepEqual(nodes, row.nodes, `${strategy}: insertion ${insertion}`);
+      assert.equal(frame.stats.insertion_rotations, row.rotations);
+      assert.equal(frame.stats.visits - visits, row.visits);
+      assert.equal(frame.stats.random_bits, row.bits);
+      visits = frame.stats.visits;
+    }
+    assert.equal(insertion, keys.length);
+    assert.equal(bit, priorities.length * 64);
+  }
+});
+
 class TestSlider {
   constructor() { this.listeners = {}; this.value = '0'; this.captured = null; }
   addEventListener(type, listener) { this.listeners[type] = listener; }

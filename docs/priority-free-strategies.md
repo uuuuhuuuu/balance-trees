@@ -1,5 +1,9 @@
 # Treap-like balance without stored priorities
 
+The original `random-level` policy and the separate `random-level-v2` policy
+are compared in [the version 2 investigation](random-level-v2.md), including
+the growing-rotation diagnosis and the new expected bound below three.
+
 ## Plan and acceptance criteria
 
 1. Keep `Node(key, left, right, parent)` and `BST(root)` unchanged. Permit temporary

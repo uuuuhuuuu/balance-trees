@@ -83,11 +83,41 @@ registerStrategy('random-level', c => {
   return function* (node, depth) {
     let priority = 0n;
     for (let bit = 0; bit < 64; bit++) priority = (priority << 1n) | BigInt(c.bit());
-    const target = targetDepth(priority, lowest, highest, count, depth);
+    const sampled = targetDepth(priority, lowest, highest, count, depth);
+    const target = Math.min(depth, sampled);
     count++;
     if (lowest === null || priority < lowest) lowest = priority;
     if (highest === null || priority > highest) highest = priority;
-    yield* c.event('target', `Target depth ${target}`, `Rolled ${priority}; choose depth from the previous interval, then update its extrema. No per-node priority is retained.`, node);
+    yield* c.event('target', `Target depth ${target}`, `Rolled ${priority}; sampled depth ${sampled} from the previous interval. Stay at insertion depth ${depth} if the sampled level is equally deep or deeper; otherwise rotate upward ${depth - target} times. No per-node priority is retained.`, node);
+    if (target === depth) return;
     for (let current = depth; current > target; current--) yield* c.promote(node);
+  };
+});
+registerStrategy('random-level-v2', c => {
+  let count = 0, lowest = null, highest = null;
+  return function* (node, depth) {
+    let priority = 0n;
+    for (let bit = 0; bit < 64; bit++) priority = (priority << 1n) | BigInt(c.bit());
+    const target = targetDepth(priority, lowest, highest, count, depth);
+    const isRecord = lowest !== null && priority < lowest;
+    count++;
+    if (lowest === null || priority < lowest) lowest = priority;
+    if (highest === null || priority > highest) highest = priority;
+    yield* c.event('target', `Repair level ${target}`, `Rolled ${priority}; choose a level from the previous interval. ${isRecord ? 'A strict new minimum promotes the leaf to the root.' : 'Repair the path at that level with at most two rotations.'} No per-node priority is retained.`, node);
+    if (isRecord) {
+      for (let current = depth; current > 0; current--) yield* c.promote(node);
+      return;
+    }
+    if (depth <= target) return;
+    if (depth === target + 1) { yield* c.promote(node); return; }
+    for (let current = depth; current > target + 2; current--) {
+      c.visit();
+      yield* c.event('visit', `Inspect ancestor ${c.key(node)}`, 'Walk to the sampled repair level before rotating.', node);
+      node = c.parent(node);
+    }
+    c.visit();
+    const parent = c.parent(node), grand = c.parent(parent);
+    if ((c.left(parent) === node) === (c.left(grand) === parent)) yield* c.promote(parent);
+    else { yield* c.promote(node); yield* c.promote(node); }
   };
 });

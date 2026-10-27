@@ -166,6 +166,30 @@ test('browser factory covers the catalog and rejects missing implementations', a
   assert.deepEqual([0n, 9n, 10n, 29n, 30n, 70n].map(p => targetDepth(p, 0n, 70n, 4, 9)), [0, 0, 1, 1, 2, 2]);
 });
 
+test('random-level stays at shallow leaves and rotates only the sampled depth difference', async () => {
+  const { createStrategy } = await import('../src/balance_trees/showcase/site/dist/strategies.mjs');
+  for (const [depth, priority, target] of [[1, 30n, 1], [2, 30n, 2], [5, 30n, 2], [5, 10n, 1], [5, 0n, 0]]) {
+    let bits = [], rotations = 0;
+    const events = [], node = {};
+    const strategy = createStrategy('random-level', {
+      bit: () => { assert.ok(bits.length); return bits.shift(); },
+      event: function* (kind, title, detail) { events.push({ kind, title, detail }); },
+      promote: function* (cursor) { assert.equal(cursor, node); rotations++; },
+    });
+    function insert(roll, insertionDepth) {
+      bits = [...roll.toString(2).padStart(64, '0')].map(Number);
+      [...strategy(node, insertionDepth)];
+      assert.equal(bits.length, 0);
+    }
+    // Seven prior rolls give three depth bands with boundaries 10 and 30.
+    for (const roll of [0n, 70n, 70n, 70n, 70n, 70n, 70n]) insert(roll, 0);
+    rotations = 0;
+    insert(priority, depth);
+    assert.equal(rotations, depth - target);
+    assert.equal(events.at(-1).title, `Target depth ${target}`);
+  }
+});
+
 test('narrow-screen windows keep focus connected within twelve nodes and four levels', () => {
   const tree = new LargeTree({ strategy: 'hash-priority', order: 'random', count: 1000, seed: 42, visibleLimit: 12, visibleDepth: 4 });
   const frame = finish(tree), nodes = new Map(frame.nodes.map(node => [node.key, node]));
@@ -177,4 +201,17 @@ test('narrow-screen windows keep focus connected within twelve nodes and four le
   }
   assert.equal(seen.size, nodes.size);
   assert.equal(frame.stats.nodes, 1000);
+});
+
+test('random-level v2 preserves duplicates and counts ancestor walks in both engines', () => {
+  const sequence = [0, 20, 1, 19, 2, 18, 3, 17, 4, 16, 5, 15, 6, 14, 7, 13, 8, 12, 9, 11, 10, 10, -1];
+  const expected = simulate(sequence, 'random-level-v2', 2026).frames.at(-1);
+  const actual = finish(new LargeTree({ strategy: 'random-level-v2', sequence, seed: 2026 }));
+  assert.equal(actual.stats.nodes, 22);
+  assert.equal(actual.stats.random_bits, 22 * 64);
+  assert.ok(actual.stats.visits > 0);
+  assert.deepEqual(topology(actual.nodes), topology(expected.nodes));
+  for (const field of ['nodes', 'rotations', 'visits', 'random_bits', 'mean_depth', 'height']) {
+    assert.equal(actual.stats[field], expected.stats[field]);
+  }
 });

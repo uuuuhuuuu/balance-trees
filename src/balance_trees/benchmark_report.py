@@ -12,7 +12,7 @@ CHARTS = {
     "mean_depth": "Final mean depth (edges)",
     "height": "Final height (edges)",
     "mean_rotations": "Rotations / key",
-    "mean_visits": "Coin / heap decisions / key",
+    "mean_visits": "Rebalance decisions / steps / key",
     "mean_random_bits": "Logical random bits / key",
     "mean_scanned_nodes": "Recount scans / key",
 }
@@ -156,7 +156,7 @@ def page(title: str, body: str, *, script: str = "") -> str:
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Complete measured local benchmark results for experimental binary search tree strategies.">
 <title>{esc(title)} · Rotation Lab</title><link rel="stylesheet" href="./report.css"></head><body><main>
-<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./random-level.html">Random-level · thousands</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
+<nav aria-label="Lab pages"><a href="./index.html">← Tree preview</a><a href="./results.html">Benchmark graphs</a><a href="./random-level.html">Random-level · thousands</a><a href="./random-level-v2.html">Random-level v2 · report</a><a href="./summary.html">Compact results</a><a href="#downloads">Download all data</a></nav>
 {body}</main>{script}</body></html>"""
 
 

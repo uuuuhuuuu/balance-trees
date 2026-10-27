@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 430" role="img" aria-labelledby="title desc"><title id="title">Decreasing · Final height (edges)</title>
+<desc id="desc">Measured Python trials. Logarithmic key counts; vertical scale log(1+y). A dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>
+<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>
+<rect width="690" height="430" rx="14" fill="white"/>
+<text x="22" y="26" style="font-size:15px;font-weight:650">Decreasing · Final height (edges)</text>
+<line class="grid" x1="67" x2="662" y1="279.00" y2="279.00"/>
+<text x="58" y="283.00" text-anchor="end">0</text>
+<line class="grid" x1="67" x2="662" y1="220.75" y2="220.75"/>
+<text x="58" y="224.75" text-anchor="end">1.83</text>
+<line class="grid" x1="67" x2="662" y1="162.50" y2="162.50"/>
+<text x="58" y="166.50" text-anchor="end">7.03</text>
+<line class="grid" x1="67" x2="662" y1="104.25" y2="104.25"/>
+<text x="58" y="108.25" text-anchor="end">21.8</text>
+<line class="grid" x1="67" x2="662" y1="46.00" y2="46.00"/>
+<text x="58" y="50.00" text-anchor="end">63.5</text>
+<line class="grid" x1="67.00" x2="67.00" y1="46" y2="279"/>
+<text x="67.00" y="301" text-anchor="middle">1,000</text>
+<line class="grid" x1="407.00" x2="407.00" y1="46" y2="279"/>
+<text x="407.00" y="301" text-anchor="middle">16,000</text>
+<line class="grid" x1="662.00" x2="662.00" y1="46" y2="279"/>
+<text x="662.00" y="301" text-anchor="middle">128,000</text>
+<path class="log-reference" d="M67.00,145.07 L72.95,144.71 L78.90,144.36 L84.85,144.01 L90.80,143.66 L96.75,143.31 L102.70,142.97 L108.65,142.62 L114.60,142.28 L120.55,141.94 L126.50,141.61 L132.45,141.27 L138.40,140.94 L144.35,140.61 L150.30,140.28 L156.25,139.95 L162.20,139.63 L168.15,139.31 L174.10,138.98 L180.05,138.66 L186.00,138.35 L191.95,138.03 L197.90,137.72 L203.85,137.41 L209.80,137.10 L215.75,136.79 L221.70,136.48 L227.65,136.17 L233.60,135.87 L239.55,135.57 L245.50,135.27 L251.45,134.97 L257.40,134.67 L263.35,134.38 L269.30,134.08 L275.25,133.79 L281.20,133.50 L287.15,133.21 L293.10,132.92 L299.05,132.63 L305.00,132.35 L310.95,132.07 L316.90,131.78 L322.85,131.50 L328.80,131.22 L334.75,130.94 L340.70,130.67 L346.65,130.39 L352.60,130.12 L358.55,129.85 L364.50,129.58 L370.45,129.31 L376.40,129.04 L382.35,128.77 L388.30,128.50 L394.25,128.24 L400.20,127.97 L406.15,127.71 L412.10,127.45 L418.05,127.19 L424.00,126.93 L429.95,126.67 L435.90,126.42 L441.85,126.16 L447.80,125.91 L453.75,125.66 L459.70,125.40 L465.65,125.15 L471.60,124.90 L477.55,124.66 L483.50,124.41 L489.45,124.16 L495.40,123.92 L501.35,123.67 L507.30,123.43 L513.25,123.19 L519.20,122.95 L525.15,122.71 L531.10,122.47 L537.05,122.23 L543.00,121.99 L548.95,121.76 L554.90,121.52 L560.85,121.29 L566.80,121.06 L572.75,120.82 L578.70,120.59 L584.65,120.36 L590.60,120.13 L596.55,119.91 L602.50,119.68 L608.45,119.45 L614.40,119.23 L620.35,119.00 L626.30,118.78 L632.25,118.56 L638.20,118.34 L644.15,118.11 L650.10,117.89 L656.05,117.68 L662.00,117.46" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>
+<text x="656" y="108.46" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>
+<path d="M67.00,99.12V88.05 M64.00,99.12h6 M64.00,88.05h6" stroke="#2563eb" fill="none"/>
+<circle cx="67.00" cy="93.31" r="4" fill="#2563eb"><title>random-level; n=1000; height=26.6667; SE=2.728450923957484</title></circle>
+<path d="M67.00,93.31 L407.00,69.96" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M407.00,72.32V67.70 M404.00,72.32h6 M404.00,67.70h6" stroke="#2563eb" fill="none"/>
+<circle cx="407.00" cy="69.96" r="4" fill="#2563eb"><title>random-level; n=16000; height=41; SE=1.7320508075688774</title></circle>
+<path d="M407.00,69.96 L662.00,52.56" stroke="#2563eb" stroke-width="2" fill="none"/>
+<path d="M662.00,52.88V52.23 M659.00,52.88h6 M659.00,52.23h6" stroke="#2563eb" fill="none"/>
+<circle cx="662.00" cy="52.56" r="4" fill="#2563eb"><title>random-level; n=128000; height=56.3333; SE=0.3333333333333333</title></circle>
+<circle cx="22" cy="331" r="4" fill="#2563eb"/><text x="32" y="335">random-level</text>
+<path d="M67.00,95.79V90.93 M64.00,95.79h6 M64.00,90.93h6" stroke="#d97706" fill="none"/>
+<circle cx="67.00" cy="93.31" r="4" fill="#d97706"><title>random-level-v2; n=1000; height=26.6667; SE=1.2018504251546631</title></circle>
+<path d="M67.00,93.31 L407.00,73.16" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M407.00,75.70V70.73 M404.00,75.70h6 M404.00,70.73h6" stroke="#d97706" fill="none"/>
+<circle cx="407.00" cy="73.16" r="4" fill="#d97706"><title>random-level-v2; n=16000; height=38.6667; SE=1.763834207376394</title></circle>
+<path d="M407.00,73.16 L662.00,59.84" stroke="#d97706" stroke-width="2" fill="none"/>
+<path d="M662.00,61.34V58.38 M659.00,61.34h6 M659.00,58.38h6" stroke="#d97706" fill="none"/>
+<circle cx="662.00" cy="59.84" r="4" fill="#d97706"><title>random-level-v2; n=128000; height=49.3333; SE=1.3333333333333333</title></circle>
+<circle cx="245" cy="331" r="4" fill="#d97706"/><text x="255" y="335">random-level-v2</text>
+<text x="22" y="422" style="font-size:10px">x: log(keys) · y: log(1 + value) · missing groups omitted · whiskers: ±1 SE</text>
+</svg>

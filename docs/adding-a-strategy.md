@@ -36,7 +36,7 @@ driver. Duplicate names are rejected. Use `create_strategy(name, **options)`
 or `TreeFlavor.create(name, seed=2026, **options)` to obtain a new policy/tree.
 `STRATEGIES` remains an iterable of callable descriptors for existing clients.
 The factory is the shared source for creation and display metadata. Every trial
-gets a fresh policy; this is essential for `random-level`, whose count and
+gets a fresh policy; this is essential for both `random-level` versions, whose count and
 priority extrema belong to one tree. Keep immutable configuration and document
 any persistent external state.
 
@@ -46,6 +46,10 @@ Both browser engines supply adapters for `parent`, `left`, `right`, `key`,
 `choose`, `promote`, `scan`, `event`, `visit` and `bit`. Missing implementations
 fail with a descriptive error rather than quietly using plain BST insertion.
 Do not modify the insertion engines or tree renderer for a new policy.
+
+For deterministic ancestor inspections, use `context.visit(node)` so work and
+Python traces remain visible; the browser adapter supplies `visit()` for the
+same counter. The separate `random-level-v2` policy demonstrates this hook.
 
 Refresh the local metadata catalog after changing a descriptor:
 

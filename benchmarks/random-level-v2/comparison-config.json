@@ -1,0 +1,14 @@
+{
+  "original_dataset": "src/balance_trees/showcase/site/dist/random-level-results/results.json",
+  "original_sha256": "6d822095de23aa99415ba3aa8c953e0d563de8112d17f61adefbed585c69ba6e",
+  "v2_run": "benchmarks/results/random-level-v2-validation",
+  "pairing": "Match n, order, trial, seed and order_seed; the first three archived trials at each selected size. This comparison records operation counts and final shapes, not cross-run timing comparisons.",
+  "sizes": [
+    1000,
+    16000,
+    128000
+  ],
+  "trials": 3,
+  "seed": 2026,
+  "paired_trials_per_version": 63
+}

@@ -9,6 +9,7 @@ from .hashed import HashPriority
 from .lottery import RecountRoot, WindowRoot
 from .paper import GeometricStop, Zig, ZigZag
 from .random_level import TreapPriority
+from .random_level_v2 import RandomLevelV2
 from .registry import StrategyFactory, StrategySpec
 
 strategy_factory = StrategyFactory()
@@ -73,6 +74,12 @@ for identifier, spec in {
         "Priority-free depth heuristic",
         "Roll 64 fair bits and choose a depth from the previous observed priority interval. New minima reach the root; new maxima stay leaves. Stores only a count and two extrema; no balance guarantee.",
     ),
+    "random-level-v2": StrategySpec(
+        RandomLevelV2,
+        "Random level v2",
+        "Local repair at sampled level",
+        "Choose a repair level using the original 64-bit interval bands. Ordinary insertions perform at most two local rotations; strict new minima promote the leaf to the root. Expected fewer than three rotations per insertion from empty under iid uniform rolls. Ancestor walks can be long; no logarithmic-depth guarantee.",
+    ),
 }.items():
     strategy_factory.register(identifier, spec)
 
@@ -88,6 +95,7 @@ __all__ = [
     "HashPriority",
     "InverseDepthWalk",
     "NoRebalance",
+    "RandomLevelV2",
     "RebalanceContext",
     "RecountRoot",
     "Strategy",

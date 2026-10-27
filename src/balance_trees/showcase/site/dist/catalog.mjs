@@ -54,5 +54,10 @@ export const FLAVORS = {
     "name": "Random level",
     "tag": "Priority-free depth heuristic",
     "note": "Roll 64 fair bits and choose a depth from the previous observed priority interval. New minima reach the root; new maxima stay leaves. Stores only a count and two extrema; no balance guarantee."
+  },
+  "random-level-v2": {
+    "name": "Random level v2",
+    "tag": "Local repair at sampled level",
+    "note": "Choose a repair level using the original 64-bit interval bands. Ordinary insertions perform at most two local rotations; strict new minima promote the leaf to the root. Expected fewer than three rotations per insertion from empty under iid uniform rolls. Ancestor walks can be long; no logarithmic-depth guarantee."
   }
 };

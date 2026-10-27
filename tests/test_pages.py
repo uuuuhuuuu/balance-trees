@@ -32,7 +32,12 @@ class PagesBuildTests(unittest.TestCase):
     def test_result_pages_and_graphs_are_self_contained(self):
         with tempfile.TemporaryDirectory() as temporary:
             output = build_site(Path(temporary) / "website")
-            for filename in ("summary.html", "results.html", "random-level.html"):
+            for filename in (
+                "summary.html",
+                "results.html",
+                "random-level.html",
+                "random-level-v2.html",
+            ):
                 page = AssetReferences()
                 page.feed((output / filename).read_text())
                 for reference in page.links:

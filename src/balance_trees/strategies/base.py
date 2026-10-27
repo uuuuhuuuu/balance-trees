@@ -17,6 +17,10 @@ class RebalanceContext:
     stats: InsertionStats
     seed: int = 0
 
+    def visit(self, node: Node) -> None:
+        """Count an inspected ancestor during deterministic rebalancing work."""
+        self.stats.visits += 1
+
     def scan(self, node: Node) -> None:
         """Count an actual node inspection for transient subtree reconstruction."""
         self.stats.scanned_nodes += 1
