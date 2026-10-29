@@ -60,7 +60,9 @@ class RandomLevelV3(TreapPriority):
             if remaining <= 0.0:
                 break
             numerator = min(_SCALE, round(weight / remaining * _SCALE))
-            if context.choose(numerator, _SCALE, purpose="choose-final-level"):
+            if context.choose(
+                context.inserted, numerator, _SCALE, purpose="choose-final-level"
+            ):
                 target = level
                 break
             remaining -= weight
