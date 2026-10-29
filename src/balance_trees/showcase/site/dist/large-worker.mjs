@@ -1,3 +1,4 @@
+import './random-level-v3.mjs';
 import { LargeTree } from './large-model.mjs';
 
 let engine = null, running = false, done = false, delay = 650, target = null, scheduled = null;
