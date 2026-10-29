@@ -11,6 +11,7 @@ from .paper import GeometricStop, Zig, ZigZag
 from .random_level import TreapPriority
 from .random_level_v2 import RandomLevelV2
 from .random_level_v3 import RandomLevelV3
+from .random_level_v4 import RandomLevelV4
 from .registry import StrategyFactory, StrategySpec
 
 strategy_factory = StrategyFactory()
@@ -87,6 +88,12 @@ for identifier, spec in {
         "Sampled final level",
         "Keep v2 priority tracking, sample a final level from a depth-aware distribution, and promote the inserted leaf v1-style to that level. The no-rotation weight is 1 minus the normalized saved maximum; level k has weight (d / (2 log^(1+epsilon) n))^(d-k).",
     ),
+    "random-level-v4": StrategySpec(
+        RandomLevelV4,
+        "Random level v4",
+        "Depth-switched v2/v3 hybrid",
+        "Use v2 local repair when insertion depth d < ln(n), otherwise current v3 with a fixed 10% no-rotation gate, epsilon=1 and targets including the root. n counts previous insertions; equality and the empty tree use v3. Both branches share count and priority extrema. No balance guarantee.",
+    ),
 }.items():
     strategy_factory.register(identifier, spec)
 
@@ -104,6 +111,7 @@ __all__ = [
     "NoRebalance",
     "RandomLevelV2",
     "RandomLevelV3",
+    "RandomLevelV4",
     "RebalanceContext",
     "RecountRoot",
     "Strategy",
