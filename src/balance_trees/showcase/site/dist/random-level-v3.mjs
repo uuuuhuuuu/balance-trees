@@ -15,7 +15,7 @@ registerStrategy('random-level-v3', c => {
     else if (depth >= 2 && previousMax !== null && previousCount >= 2) {
       if (yield* c.choose(node, previousMax, 1n << 64n, 'promote-leaf')) {
         const logRatio = Math.log(depth) - Math.log(2)
-          - (1 + 1e-9) * Math.log(Math.log(previousCount));
+          - (1 + 1) * Math.log(Math.log(previousCount));
         const peak = logRatio >= 0 ? depth - 1 : 1;
         const weights = new Float64Array(depth - 1);
         const suffix = new Float64Array(depth);

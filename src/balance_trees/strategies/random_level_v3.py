@@ -7,7 +7,7 @@ from .base import RebalanceContext
 from .random_level import PRIORITY_BITS, TreapPriority
 
 _C = 2.0
-_EPSILON = 1e-9
+_EPSILON = 1.0
 _SCALE = 1 << 53
 
 
