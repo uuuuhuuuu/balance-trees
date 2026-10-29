@@ -1,10 +1,10 @@
-"""A third random-level policy: sample a final level, then promote v1-style."""
+"""Depth-weighted leaf promotions with v2 priority tracking."""
 
 import math
 from dataclasses import dataclass
 
 from .base import RebalanceContext
-from .random_level import TreapPriority
+from .random_level import PRIORITY_BITS, TreapPriority
 
 _C = 2.0
 _EPSILON = 1e-9
@@ -13,60 +13,68 @@ _SCALE = 1 << 53
 
 @dataclass(slots=True)
 class RandomLevelV3(TreapPriority):
-    """Sample the inserted leaf's final level from a depth-aware distribution.
+    """Promote strict records to the root; otherwise sample a final depth.
 
-    Keeps v2's priority rolls and observed-extrema tracking. The no-rotation
-    outcome has weight 1 minus the normalized saved maximum priority. A final
-    level k in 1..d-1 has weight (d / (2 log^(1+epsilon) n))^(d-k). After
-    sampling, the leaf is promoted from insertion depth d to level k.
+    Use extrema from before the insertion. For non-record insertions at
+    depth d >= 2, stay with probability 1-M, where M is the normalized
+    previous maximum. Conditional on promotion, target k in 1..d-1 has
+    weight (d / (2 * ln(n)**(1+epsilon)))**(d-k), with n previous inserts.
+    Record minima are an exception to the ordinary probability rule.
+    At depth one, non-record insertions stay because no target exists.
+    Target sampling uses scaled floating-point weights and 53-bit coins;
+    the stay decision uses the exact 64-bit maximum without float rounding.
     """
 
     def rebalance(self, context: RebalanceContext) -> None:
         priority = self.roll_priority(context)
         depth = context.stats.insertion_depth
-        previous_count = self.inserted_count
-
+        count = self.inserted_count
         lowest = self.lowest_priority
         highest = self.highest_priority
-        self.inserted_count += 1
-        self.lowest_priority = (
-            priority if lowest is None else min(lowest, priority)
-        )
-        self.highest_priority = (
-            priority if highest is None else max(highest, priority)
-        )
-        context.stats.priority = priority
+        is_record = lowest is not None and priority < lowest
 
-        if depth == 0 or previous_count == 0:
+        self.inserted_count += 1
+        self.lowest_priority = priority if lowest is None else min(lowest, priority)
+        self.highest_priority = priority if highest is None else max(highest, priority)
+        context.stats.priority = priority
+        node = context.inserted
+
+        if depth == 0:
+            return
+        if is_record:
+            for _ in range(depth):
+                context.promote(node, distance=0)
+            return
+        if depth < 2 or highest is None or count < 2:
             return
 
-        saved_max = self.highest_priority / (1 << 64)
-        no_rotation_weight = max(0.0, 1.0 - saved_max)
-        denominator = _C * max(math.log(previous_count), 1.0) ** (
-            1.0 + _EPSILON
-        )
-        level_weight = depth / denominator
+        if not context.choose(
+            node, highest, 1 << PRIORITY_BITS, purpose="promote-leaf"
+        ):
+            return
 
-        candidates = [(depth, no_rotation_weight)]
-        candidates.extend(
-            (level, level_weight ** (depth - level))
+        log_ratio = (
+            math.log(depth) - math.log(_C)
+            - (1.0 + _EPSILON) * math.log(math.log(count))
+        )
+        # Subtract the largest log weight before exponentiation.
+        peak = (depth - 1) if log_ratio >= 0 else 1
+        weights = [
+            math.exp((depth - level - peak) * log_ratio)
             for level in range(1, depth)
-        )
+        ]
+        suffix = [0.0] * (len(weights) + 1)
+        for index in range(len(weights) - 1, -1, -1):
+            suffix[index] = math.fsum((weights[index], suffix[index + 1]))
 
-        remaining = sum(weight for _, weight in candidates)
-        target = depth
-
-        for level, weight in candidates:
-            if remaining <= 0.0:
-                break
-            numerator = min(_SCALE, round(weight / remaining * _SCALE))
+        target = depth - 1
+        for index, weight in enumerate(weights[:-1]):
+            numerator = min(_SCALE, max(0, round(weight / suffix[index] * _SCALE)))
             if context.choose(
-                context.inserted, numerator, _SCALE, purpose="choose-final-level"
+                node, numerator, _SCALE, purpose="choose-final-level"
             ):
-                target = level
+                target = index + 1
                 break
-            remaining -= weight
 
-        node = context.inserted
         for _ in range(depth - target):
             context.promote(node, distance=0)
