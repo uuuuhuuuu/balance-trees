@@ -13,6 +13,12 @@ STATIC = Path(__file__).with_name("site") / "dist"
 
 
 class ShowcaseHandler(SimpleHTTPRequestHandler):
+    extensions_map = {
+        **SimpleHTTPRequestHandler.extensions_map,
+        ".mjs": "text/javascript",
+        ".js": "text/javascript",
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(STATIC), **kwargs)
 
