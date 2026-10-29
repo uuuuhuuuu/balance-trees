@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 
 from .base import RebalanceContext
-from .random_level import PRIORITY_BITS, TreapPriority
+from .random_level import TreapPriority
 
 _C = 2.0
 _EPSILON = 1.0
@@ -15,14 +15,14 @@ _SCALE = 1 << 53
 class RandomLevelV3(TreapPriority):
     """Promote strict records to the root; otherwise sample a final depth.
 
-    Use extrema from before the insertion. For non-record insertions at
-    depth d >= 2, stay with probability 1-M, where M is the normalized
-    previous maximum. Conditional on promotion, target k in 1..d-1 has
-    weight (d / (2 * ln(n)**(1+epsilon)))**(d-k), with n previous inserts.
-    Record minima are an exception to the ordinary probability rule.
-    At depth one, non-record insertions stay because no target exists.
-    Target sampling uses scaled floating-point weights and 53-bit coins;
-    the stay decision uses the exact 64-bit maximum without float rounding.
+    For non-record insertions at depth d >= 2, stay with probability 1/10
+    and promote with probability 9/10, independently of the saved maximum.
+    Conditional on promotion, target k in 1..d-1 has weight
+    (d / (2 * ln(n)**(1+epsilon)))**(d-k), with n previous inserts.
+    Record minima always reach the root. At depth one, non-record
+    insertions stay because no target exists. Priority extrema and count
+    are still tracked. Target sampling uses scaled floating-point weights
+    and 53-bit coins; the promotion gate uses the exact fraction 9/10.
     """
 
     def rebalance(self, context: RebalanceContext) -> None:
@@ -45,12 +45,10 @@ class RandomLevelV3(TreapPriority):
             for _ in range(depth):
                 context.promote(node, distance=0)
             return
-        if depth < 2 or highest is None or count < 2:
+        if depth < 2 or count < 2:
             return
 
-        if not context.choose(
-            node, highest, 1 << PRIORITY_BITS, purpose="promote-leaf"
-        ):
+        if not context.choose(node, 9, 10, purpose="promote-leaf"):
             return
 
         log_ratio = (

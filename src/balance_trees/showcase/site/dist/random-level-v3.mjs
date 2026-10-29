@@ -5,15 +5,15 @@ registerStrategy('random-level-v3', c => {
   return function* (node, depth) {
     let priority = 0n;
     for (let bit = 0; bit < 64; bit++) priority = (priority << 1n) | BigInt(c.bit());
-    const previousCount = count, previousMax = highest;
+    const previousCount = count;
     const isRecord = lowest !== null && priority < lowest;
     count++;
     if (lowest === null || priority < lowest) lowest = priority;
     if (highest === null || priority > highest) highest = priority;
     let target = depth;
     if (isRecord) target = 0;
-    else if (depth >= 2 && previousMax !== null && previousCount >= 2) {
-      if (yield* c.choose(node, previousMax, 1n << 64n, 'promote-leaf')) {
+    else if (depth >= 2 && previousCount >= 2) {
+      if (yield* c.choose(node, 9, 10, 'promote-leaf')) {
         const logRatio = Math.log(depth) - Math.log(2)
           - (1 + 1) * Math.log(Math.log(previousCount));
         const peak = logRatio >= 0 ? depth - 1 : 1;
@@ -35,7 +35,7 @@ registerStrategy('random-level-v3', c => {
       }
     }
     yield* c.event('target', `Target depth ${target}`,
-      `Rolled ${priority}. ${isRecord ? 'A strict new minimum reaches the root.' : 'Use the previous maximum for the promotion gate and normalized depth weights for the target.'} Final depth ${target}; ${depth - target} rotations.`, node);
+      `Rolled ${priority}. ${isRecord ? 'A strict new minimum reaches the root.' : depth < 2 ? 'No eligible ordinary promotion target exists.' : 'Use a fixed 90% promotion gate and normalized depth weights for the target.'} Final depth ${target}; ${depth - target} rotations.`, node);
     for (let current = depth; current > target; current--) yield* c.promote(node);
   };
 });
