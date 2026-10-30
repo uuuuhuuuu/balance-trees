@@ -10,6 +10,7 @@ from .lottery import RecountRoot, WindowRoot
 from .paper import GeometricStop, Zig, ZigZag
 from .random_level import TreapPriority
 from .random_level_v2 import RandomLevelV2
+from .random_level_v2_1 import RandomLevelV21
 from .random_level_v3 import RandomLevelV3
 from .random_level_v4 import RandomLevelV4
 from .registry import StrategyFactory, StrategySpec
@@ -82,6 +83,12 @@ for identifier, spec in {
         "Local repair at sampled level",
         "Choose a repair level using the original 64-bit interval bands. Ordinary insertions perform at most two local rotations; strict new minima promote the leaf to the root. Expected fewer than three rotations per insertion from empty under iid uniform rolls. Ancestor walks can be long; no logarithmic-depth guarantee.",
     ),
+    "random-level-v2-1": StrategySpec(
+        RandomLevelV21,
+        "Random level v2.1",
+        "Local repair, log-width priorities",
+        "Use ceil(log2(k + 1)) fresh bits for the k-th insertion, then apply the v2 target selection and local repair. Strict new minima reach the root. The sampled priority range widens over time; no logarithmic-depth guarantee.",
+    ),
     "random-level-v3": StrategySpec(
         RandomLevelV3,
         "Random level v3",
@@ -110,6 +117,7 @@ __all__ = [
     "InverseDepthWalk",
     "NoRebalance",
     "RandomLevelV2",
+    "RandomLevelV21",
     "RandomLevelV3",
     "RandomLevelV4",
     "RebalanceContext",
