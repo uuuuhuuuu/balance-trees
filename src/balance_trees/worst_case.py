@@ -116,35 +116,31 @@ def svg_escape(value: object) -> str:
     return html.escape(str(value), quote=True)
 
 
-def height_svg(rows: list[dict], *, strategy: str, order: str) -> str:
-    """Plot the worst seed-averaged height at each linearly spaced size."""
+def rotations_svg(rows: list[dict], *, strategy: str, order: str) -> str:
+    """Plot the worst seed-averaged rotations per key at each size."""
     width, height = 900, 520
     left, top, plot_width, plot_height = 82, 58, 740, 360
     sizes = [row["size"] for row in rows]
-    heights = [row["worst_height"] for row in rows]
-    ymax = max(heights) * 1.12
+    values = [row["worst_rotations"] for row in rows]
+    ymax = max(values) * 1.12
 
     def x(size: int) -> float:
         return left + (size - sizes[0]) / (sizes[-1] - sizes[0]) * plot_width
 
     def y(value: float) -> float:
-        return top + plot_height * (1 - value / ymax)
+        return top + plot_height * (1 - max(0, value) / ymax)
 
     points = " ".join(
-        f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['worst_height']):.2f}"
+        f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['worst_rotations']):.2f}"
         for index, row in enumerate(rows)
-    )
-    log_points = " ".join(
-        f"{'M' if index == 0 else 'L'}{x(size):.2f},{y(math.log2(size)):.2f}"
-        for index, size in enumerate(sizes)
     )
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
-        f'<title id="title">{svg_escape(strategy)} · worst seed-averaged height</title>',
-        f'<desc id="desc">Worst height over seed-averaged runs for {svg_escape(order)} inputs. Blue: measured worst average; green dashed: log2(n) reference.</desc>',
+        f'<title id="title">{svg_escape(strategy)} · worst seed-averaged rotations per key</title>',
+        f'<desc id="desc">Worst rotations per insertion over seed-averaged runs for {svg_escape(order)} inputs.</desc>',
         '<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>',
         f'<rect width="{width}" height="{height}" rx="14" fill="white"/>',
-        f'<text x="26" y="32" style="font-size:17px;font-weight:650">{svg_escape(strategy)} · worst seed-averaged height</text>',
+        f'<text x="26" y="32" style="font-size:17px;font-weight:650">{svg_escape(strategy)} · worst seed-averaged rotations/key</text>',
         f'<text x="26" y="52" style="fill:#64748b">{svg_escape(order)} inputs · worst of seed-averaged runs at each size</text>',
     ]
     for tick in range(6):
@@ -160,17 +156,15 @@ def height_svg(rows: list[dict], *, strategy: str, order: str) -> str:
             f'<line class="grid" x1="{xx:.2f}" x2="{xx:.2f}" y1="{top}" y2="{top + plot_height}"/>',
             f'<text x="{xx:.2f}" y="{top + plot_height + 22}" text-anchor="middle">{row["size"]:,}</text>',
         ]
-    parts += [
-        f'<path d="{log_points}" stroke="#059669" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
-        f'<path d="{points}" stroke="#2563eb" stroke-width="3" fill="none"/>',
-    ]
+    parts.append(
+        f'<path d="{points}" stroke="#dc2626" stroke-width="3" fill="none"/>'
+    )
     for row in rows:
         parts.append(
-            f'<circle cx="{x(row["size"]):.2f}" cy="{y(row["worst_height"]):.2f}" r="5" fill="#2563eb"><title>n={row["size"]:,}; worst average height={row["worst_height"]:.6g}; worst run={row["worst_height_run"]}</title></circle>'
+            f'<circle cx="{x(row["size"]):.2f}" cy="{y(row["worst_rotations"]):.2f}" r="5" fill="#dc2626"><title>n={row["size"]:,}; worst average rotations/key={row["worst_rotations"]:.6g}; worst run={row["worst_rotations_run"]}</title></circle>'
         )
     parts += [
-        f'<text x="{left + plot_width - 8}" y="{y(math.log2(sizes[-1])) - 10:.2f}" text-anchor="end" style="fill:#059669;font-size:11px">log₂ n reference</text>',
-        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: keys · y: height · blue: worst seed-averaged height · green dashed: log₂ n</text>',
+        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: keys · y: rotations per insertion · red: worst seed-averaged rotations/key</text>',
         "</svg>",
     ]
     return "\n".join(parts)
@@ -210,7 +204,7 @@ def main() -> None:
         all_run_averages.extend(run_averages)
         sweep.append(worst)
         print(
-            f"Finished n={size:,}: worst average height={worst['worst_height']:.3g}",
+            f"Finished n={size:,}: worst average rotations/key={worst['worst_rotations']:.3g}",
             flush=True,
         )
     fields = list(sweep[0].keys())
@@ -226,8 +220,8 @@ def main() -> None:
         writer = csv.DictWriter(handle, all_run_averages[0].keys())
         writer.writeheader()
         writer.writerows(all_run_averages)
-    (args.output / "height.svg").write_text(
-        height_svg(sweep, strategy=args.strategy, order=args.order),
+    (args.output / "rotations.svg").write_text(
+        rotations_svg(sweep, strategy=args.strategy, order=args.order),
         encoding="utf-8",
     )
     metadata = {
