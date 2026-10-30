@@ -1,7 +1,8 @@
-"""Find the worst seed-averaged behavior of one strategy at one size."""
+"""Find worst seed-averaged behavior across a linear size sweep."""
 
 import argparse
 import csv
+import html
 import json
 import math
 from dataclasses import asdict
@@ -92,37 +93,159 @@ def worst_case(
     return run_averages, worst
 
 
+def linear_sizes(min_size: int, max_size: int, count: int) -> list[int]:
+    if min_size < 2 or max_size < min_size or count < 2:
+        raise ValueError(
+            "Use min-size >= 2, max-size >= min-size, and size-count >= 2."
+        )
+    raw = [
+        min_size + (max_size - min_size) * index / (count - 1)
+        for index in range(count)
+    ]
+    sizes = sorted({max(2, round(value)) for value in raw})
+    if len(sizes) < count:
+        sizes = list(range(min_size, max_size + 1))
+        step = max(1, (len(sizes) - 1) // (count - 1))
+        sizes = sizes[::step]
+        if sizes[-1] != max_size:
+            sizes[-1] = max_size
+    return sizes
+
+
+def svg_escape(value: object) -> str:
+    return html.escape(str(value), quote=True)
+
+
+def height_svg(rows: list[dict], *, strategy: str, order: str) -> str:
+    """Plot the worst seed-averaged height at each linearly spaced size."""
+    width, height = 900, 520
+    left, top, plot_width, plot_height = 82, 58, 740, 360
+    sizes = [row["size"] for row in rows]
+    heights = [row["worst_height"] for row in rows]
+    ymax = max(heights) * 1.12
+
+    def x(size: int) -> float:
+        return left + (size - sizes[0]) / (sizes[-1] - sizes[0]) * plot_width
+
+    def y(value: float) -> float:
+        return top + plot_height * (1 - value / ymax)
+
+    points = " ".join(
+        f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['worst_height']):.2f}"
+        for index, row in enumerate(rows)
+    )
+    log_points = " ".join(
+        f"{'M' if index == 0 else 'L'}{x(size):.2f},{y(math.log2(size)):.2f}"
+        for index, size in enumerate(sizes)
+    )
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
+        f'<title id="title">{svg_escape(strategy)} · worst seed-averaged height</title>',
+        f'<desc id="desc">Worst height over seed-averaged runs for {svg_escape(order)} inputs. Blue: measured worst average; green dashed: log2(n) reference.</desc>',
+        '<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>',
+        f'<rect width="{width}" height="{height}" rx="14" fill="white"/>',
+        f'<text x="26" y="32" style="font-size:17px;font-weight:650">{svg_escape(strategy)} · worst seed-averaged height</text>',
+        f'<text x="26" y="52" style="fill:#64748b">{svg_escape(order)} inputs · worst of seed-averaged runs at each size</text>',
+    ]
+    for tick in range(6):
+        value = ymax * tick / 5
+        yy = y(value)
+        parts += [
+            f'<line class="grid" x1="{left}" x2="{left + plot_width}" y1="{yy:.2f}" y2="{yy:.2f}"/>',
+            f'<text x="{left - 10}" y="{yy + 4:.2f}" text-anchor="end">{value:.3g}</text>',
+        ]
+    for row in rows:
+        xx = x(row["size"])
+        parts += [
+            f'<line class="grid" x1="{xx:.2f}" x2="{xx:.2f}" y1="{top}" y2="{top + plot_height}"/>',
+            f'<text x="{xx:.2f}" y="{top + plot_height + 22}" text-anchor="middle">{row["size"]:,}</text>',
+        ]
+    parts += [
+        f'<path d="{log_points}" stroke="#059669" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
+        f'<path d="{points}" stroke="#2563eb" stroke-width="3" fill="none"/>',
+    ]
+    for row in rows:
+        parts.append(
+            f'<circle cx="{x(row["size"]):.2f}" cy="{y(row["worst_height"]):.2f}" r="5" fill="#2563eb"><title>n={row["size"]:,}; worst average height={row["worst_height"]:.6g}; worst run={row["worst_height_run"]}</title></circle>'
+        )
+    parts += [
+        f'<text x="{left + plot_width - 8}" y="{y(math.log2(sizes[-1])) - 10:.2f}" text-anchor="end" style="fill:#059669;font-size:11px">log₂ n reference</text>',
+        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: keys · y: height · blue: worst seed-averaged height · green dashed: log₂ n</text>',
+        "</svg>",
+    ]
+    return "\n".join(parts)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--strategy", default="random-level-v2-1")
     parser.add_argument("--order", default="random")
-    parser.add_argument("--size", type=int, default=100000)
-    parser.add_argument("--runs", type=int, default=100)
+    parser.add_argument("--min-size", type=int, default=1000)
+    parser.add_argument("--max-size", type=int, default=100000)
+    parser.add_argument("--size-count", type=int, default=10)
+    parser.add_argument("--runs", type=int, default=10)
     parser.add_argument("--seeds-per-run", type=int)
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument(
-        "--output", type=Path, default=Path("benchmarks/worst-case")
+        "--output", type=Path, default=Path("benchmarks/worst-case-sweep")
     )
     args = parser.parse_args()
-    run_averages, worst = worst_case(
-        strategy=args.strategy,
-        order=args.order,
-        size=args.size,
-        runs=args.runs,
-        seed=args.seed,
-        seeds_per_run=args.seeds_per_run,
-    )
+    sizes = linear_sizes(args.min_size, args.max_size, args.size_count)
     args.output.mkdir(parents=True, exist_ok=False)
-    with (args.output / "run_averages.csv").open(
+    sweep = []
+    all_run_averages = []
+    for index, size in enumerate(sizes):
+        print(
+            f"Starting size {index + 1}/{len(sizes)}: n={size:,}",
+            flush=True,
+        )
+        run_averages, worst = worst_case(
+            strategy=args.strategy,
+            order=args.order,
+            size=size,
+            runs=args.runs,
+            seed=args.seed + index * 10000,
+            seeds_per_run=args.seeds_per_run,
+        )
+        all_run_averages.extend(run_averages)
+        sweep.append(worst)
+        print(
+            f"Finished n={size:,}: worst average height={worst['worst_height']:.3g}",
+            flush=True,
+        )
+    fields = list(sweep[0].keys())
+    with (args.output / "worst_case_sweep.csv").open(
         "w", newline="", encoding="utf-8"
     ) as handle:
-        writer = csv.DictWriter(handle, run_averages[0].keys())
+        writer = csv.DictWriter(handle, fields)
         writer.writeheader()
-        writer.writerows(run_averages)
-    (args.output / "worst_case.json").write_text(
-        json.dumps(worst, indent=2) + "\n", encoding="utf-8"
+        writer.writerows(sweep)
+    with (args.output / "all_run_averages.csv").open(
+        "w", newline="", encoding="utf-8"
+    ) as handle:
+        writer = csv.DictWriter(handle, all_run_averages[0].keys())
+        writer.writeheader()
+        writer.writerows(all_run_averages)
+    (args.output / "height.svg").write_text(
+        height_svg(sweep, strategy=args.strategy, order=args.order),
+        encoding="utf-8",
     )
-    print(json.dumps(worst, indent=2))
+    metadata = {
+        "strategy": args.strategy,
+        "order": args.order,
+        "min_size": args.min_size,
+        "max_size": args.max_size,
+        "size_count": args.size_count,
+        "sizes": sizes,
+        "runs": args.runs,
+        "seeds_per_run": args.seeds_per_run,
+        "seed": args.seed,
+        "total_trials": sum(row["total_trials"] for row in sweep),
+    }
+    (args.output / "metadata.json").write_text(
+        json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
+    )
+    print(f"Sweep ready in {args.output}")
 
 
 if __name__ == "__main__":
