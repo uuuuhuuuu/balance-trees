@@ -37,11 +37,16 @@ def build_svg(
     seed: int,
     window: int,
 ) -> str:
-    """Draw per-insertion depth, its rolling mean, and sampled tree height."""
+    """Draw per-insertion depth, its rolling mean, sampled height, and log2 n."""
     width, height = 1100, 560
     left, top, plot_width, plot_height = 78, 52, 950, 400
     n = len(depths)
-    ymax = max(1, max(depths), max(sample["height"] for sample in samples)) * 1.08
+    ymax = max(
+        1,
+        max(depths),
+        max(sample["height"] for sample in samples),
+        max(1, n).bit_length() - 1,
+    ) * 1.08
 
     def x(index: int) -> float:
         return left + index / max(1, n - 1) * plot_width
@@ -52,7 +57,7 @@ def build_svg(
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
         f'<title id="title">{svg_escape(strategy)} · insertion depth during one {svg_escape(order)} run</title>',
-        f'<desc id="desc">Depth d of each inserted key, a {window}-insertion rolling mean, and sampled final-tree height. Seed {seed}; {n:,} unique keys.</desc>',
+        f'<desc id="desc">Depth d of each inserted key, a {window}-insertion rolling mean, sampled tree height, and a green log2(n) reference. Seed {seed}; {n:,} unique keys.</desc>',
         '<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>',
         f'<rect width="{width}" height="{height}" rx="14" fill="white"/>',
         f'<text x="26" y="30" style="font-size:17px;font-weight:650">{svg_escape(strategy)} · one {svg_escape(order)} sequence</text>',
@@ -84,13 +89,19 @@ def build_svg(
         f"{'M' if index == 0 else 'L'}{x(sample['insertion'] - 1):.2f},{y(sample['height']):.2f}"
         for index, sample in enumerate(samples)
     )
+    log_points = " ".join(
+        f"{'M' if index == 0 else 'L'}{x(index):.2f},{y(math.log2(index + 1)):.2f}"
+        for index in range(n)
+    )
     parts += [
+        f'<path d="{log_points}" stroke="#059669" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
         f'<path d="{height_points}" stroke="#dc2626" stroke-width="2.5" fill="none" opacity="0.85"/>',
         f'<path d="{depth_points}" stroke="#94a3b8" stroke-width="1" fill="none" opacity="0.45"/>',
         f'<path d="{rolling_points}" stroke="#2563eb" stroke-width="2.5" fill="none"/>',
+        f'<text x="{left + plot_width - 8}" y="{y(math.log2(n)) - 10:.2f}" text-anchor="end" style="fill:#059669;font-size:11px">log₂ n reference</text>',
         f'<text x="{left + plot_width - 8}" y="{y(samples[-1]["height"]) - 10:.2f}" text-anchor="end" style="fill:#dc2626;font-size:11px">sampled height</text>',
         f'<text x="{left + plot_width - 8}" y="{y(rolling[-1]) + 18:.2f}" text-anchor="end" style="fill:#2563eb;font-size:11px">rolling mean d</text>',
-        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: insertion number · y: depth · gray: individual d · blue: {window}-insertion rolling mean · red: sampled tree height</text>',
+        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: insertion number · y: depth · gray: individual d · blue: {window}-insertion rolling mean · red: sampled tree height · green dashed: log₂ n</text>',
         "</svg>",
     ]
     return "\n".join(parts)
