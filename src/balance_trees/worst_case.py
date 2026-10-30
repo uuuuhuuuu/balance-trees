@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import math
+from dataclasses import asdict
 from pathlib import Path
 from statistics import fmean
 
@@ -26,7 +27,7 @@ def average_run(
     for seed_index in range(seeds_per_run):
         values = insertion_order(order, size, seed + seed_index)
         result = run_trial(values, create_strategy(strategy), seed + seed_index)
-        metrics = dict(result.metrics)
+        metrics = asdict(result.metrics)
         metrics["seconds"] = result.elapsed_seconds
         metrics["microseconds_per_insertion"] = (
             result.elapsed_seconds * 1e6 / size
