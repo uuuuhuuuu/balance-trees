@@ -81,7 +81,7 @@ def build_svg(
         for index, value in enumerate(rolling)
     )
     height_points = " ".join(
-        f"{'M' if index == 0 else 'L'}{x(sample['index']):.2f},{y(sample['height']):.2f}"
+        f"{'M' if index == 0 else 'L'}{x(sample['insertion'] - 1):.2f},{y(sample['height']):.2f}"
         for index, sample in enumerate(samples)
     )
     parts += [
