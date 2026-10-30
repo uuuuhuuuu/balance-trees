@@ -53,8 +53,9 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
         (r[metric] + (r.get(metric + "_se") or 0) for r in complete), default=1
     )
     linear = metric == "mean_rotations"
+    reference_max = math.log2(math.log2(sizes[-1]))
     if linear:
-        ymax = max(1, max_value) * 1.12
+        ymax = max(1, max_value, reference_max) * 1.12
     else:
         ymax = max(1, max_value, math.log2(sizes[-1])) * 1.12
     left, top, width, height = 67, 46, 595, 233
@@ -78,7 +79,7 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
     canvas_height = max(430, 345 + math.ceil(len(meta["strategies"]) / 3) * 22)
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 690 {canvas_height}" role="img" aria-labelledby="title desc"><title id="title">{esc(title)}</title>',
-        '<desc id="desc">Measured Python trials. Logarithmic key counts. Except for rotations, the vertical scale is log(1+y) and a dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Rotations use a linear vertical scale focused on the measured range. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>',
+        '<desc id="desc">Measured Python trials. Logarithmic key counts. Except for rotations, the vertical scale is log(1+y) and a dashed gray log2(n) reference is behind the measurements: an unscaled numeric guide, not a fitted bound or timing prediction. Rotations use a linear vertical scale focused on the measured range and include a dashed log2(log2(n)) reference. Whiskers show one standard error. Only fully completed groups are plotted. Gaps are missing measurements.</desc>',
         "<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>",
         f'<rect width="690" height="{canvas_height}" rx="14" fill="white"/>',
         f'<text x="22" y="26" style="font-size:15px;font-weight:650">{esc(title)}</text>',
@@ -107,16 +108,25 @@ def chart_svg(results: dict, order: str, metric: str) -> str:
             parts.append(
                 f'<text x="{x(n):.2f}" y="301" text-anchor="middle">{n:,}</text>'
             )
-    # Sample the reference in data space before applying the nonlinear y scale.
-    reference = []
+    # Sample references in data space before applying the vertical scale.
+    log_reference = []
+    loglog_reference = []
     for step in range(101):
         n = math.exp(
             math.log(sizes[0]) + (math.log(sizes[-1]) - math.log(sizes[0])) * step / 100
         )
-        reference.append(f"{'M' if step == 0 else 'L'}{x(n):.2f},{y(math.log2(n)):.2f}")
-    if not linear:
+        log_reference.append(f"{'M' if step == 0 else 'L'}{x(n):.2f},{y(math.log2(n)):.2f}")
+        loglog_reference.append(
+            f"{'M' if step == 0 else 'L'}{x(n):.2f},{y(math.log2(math.log2(n))):.2f}"
+        )
+    if linear:
         parts += [
-            f'<path class="log-reference" d="{" ".join(reference)}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>',
+            f'<path class="log-reference" d="{" ".join(loglog_reference)}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(log₂(n)): unscaled numeric reference, not a fitted bound or timing prediction</title></path>',
+            f'<text x="{left + width - 6}" y="{y(reference_max) - 9:.2f}" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(log₂ n) reference</text>',
+        ]
+    else:
+        parts += [
+            f'<path class="log-reference" d="{" ".join(log_reference)}" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 5" opacity="0.65" fill="none"><title>log₂(n): unscaled numeric reference, not a fitted bound or timing prediction</title></path>',
             f'<text x="{left + width - 6}" y="{y(math.log2(sizes[-1])) - 9:.2f}" text-anchor="end" style="fill:#64748b;font-size:11px">log₂(n) reference</text>',
         ]
     for index, strategy in enumerate(meta["strategies"]):
@@ -376,8 +386,8 @@ def generate_report(
         for o in meta["orders"]
     )
     script = """<script>const control=document.getElementById('workload');control.addEventListener('change',()=>{for(const section of document.querySelectorAll('[data-workload]'))section.hidden=control.value!=='all'&&section.dataset.workload!==control.value;});control.value='random';control.dispatchEvent(new Event('change'));</script>"""
-    dashboard = f'<header><span class="eyebrow">Rotation Lab / local benchmarks</span><h1>How the strategies scale</h1><p class="lede">Real Python measurements from {min(meta["sizes"]):,} to {max(meta["sizes"]):,} keys. Compare time, shape and work as sequences grow. All charts are downloadable SVGs.</p></header>{stats}<div class="workload"><label for="workload">Input family</label><select id="workload">{options}</select></div><p class="status-note">Logarithmic x scale. Other charts use log(1 + value), so zeros remain visible; rotations use a linear scale focused on the measured range. Whiskers show ±1 standard error. Missing points indicate incomplete groups; open the measurement tables for statuses.</p>{"".join(sections)}{downloads}{methodology}'
-    reference_note = '<p class="status-note">Every graph except rotations has a muted dashed log₂(n) curve behind the measurements. It is an unscaled numeric reference, not a fitted bound or timing prediction; metric units remain as labelled.</p>'
+    dashboard = f'<header><span class="eyebrow">Rotation Lab / local benchmarks</span><h1>How the strategies scale</h1><p class="lede">Real Python measurements from {min(meta["sizes"]):,} to {max(meta["sizes"]):,} keys. Compare time, shape and work as sequences grow. All charts are downloadable SVGs.</p></header>{stats}<div class="workload"><label for="workload">Input family</label><select id="workload">{options}</select></div><p class="status-note">Logarithmic x scale. Other charts use log(1 + value), so zeros remain visible; rotations use a linear scale focused on the measured range and include a log₂(log₂ n) reference. Whiskers show ±1 standard error. Missing points indicate incomplete groups; open the measurement tables for statuses.</p>{"".join(sections)}{downloads}{methodology}'
+    reference_note = '<p class="status-note">Rotation graphs include a muted dashed log₂(log₂ n) reference; every other graph has a muted dashed log₂(n) reference. These are unscaled numeric references, not fitted bounds or timing predictions; metric units remain as labelled.</p>'
     dashboard = dashboard.replace(
         '<div class="workload">', reference_note + '<div class="workload">', 1
     )
