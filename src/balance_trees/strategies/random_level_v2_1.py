@@ -10,20 +10,30 @@ from .random_level_v2 import RandomLevelV2
 class RandomLevelV21(RandomLevelV2):
     """Use ceil(log2(k + 1)) fresh random bits for the k-th insertion.
 
-    The first insertion uses one bit, the second uses two, and so on. The
-    resulting priority is a uniform integer in [0, 2**bits). The v2 target
-    selection and local-repair mechanics are unchanged.
+    When the width grows from b to b + 1 bits, the stored extrema are remapped
+    to preserve a gap around the previously observed interval:
 
-    Because the sampled range widens over time, a new priority can exceed the
-    previous maximum and remain a leaf, or fall below the previous minimum and
-    be promoted to the root. This preserves the v2 invariant that strict new
-    minima reach the root. It does not preserve a fixed 64-bit priority
-    distribution across the run; priorities drawn later have a wider range.
+    - lowest_priority becomes 2 * lowest_priority + 1
+    - highest_priority becomes 2 * highest_priority
+
+    For example, a 4-bit interval [0000, 1111] becomes the 5-bit interval
+    [00001, 11110]. Values below the remapped minimum are strict new minima,
+    values above the remapped maximum are strict new maxima, and the old
+    interval occupies the middle of the new range. The v2 target selection and
+    local-repair mechanics are unchanged.
     """
+
+    priority_bits: int = 0
 
     def roll_priority(self, context: RebalanceContext) -> int:
         """Sample one priority using a growing logarithmic bit width."""
         bits = max(1, (self.inserted_count + 1).bit_length())
+        if bits > self.priority_bits:
+            if self.lowest_priority is not None:
+                self.lowest_priority = 2 * self.lowest_priority + 1
+            if self.highest_priority is not None:
+                self.highest_priority = 2 * self.highest_priority
+            self.priority_bits = bits
         value = 0
         for _ in range(bits):
             value = (value << 1) | context.bits.bit()
