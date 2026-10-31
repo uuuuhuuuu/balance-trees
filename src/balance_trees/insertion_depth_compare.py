@@ -1,4 +1,4 @@
-"""Compare v2.1 mean pre-balance insertion depth with log2(n) and 2 log2(n)."""
+"""Compare v2.1 mean pre-balance insertion depth with logarithmic references."""
 
 import argparse
 import csv
@@ -35,8 +35,10 @@ def measure_size(
         "mean_insertion_depth": mean_depth,
         "log2_n": math.log2(size),
         "two_log2_n": 2 * math.log2(size),
+        "two_ln_n": 2 * math.log(size),
         "ratio_to_log2_n": mean_depth / math.log2(size),
         "ratio_to_two_log2_n": mean_depth / (2 * math.log2(size)),
+        "ratio_to_two_ln_n": mean_depth / (2 * math.log(size)),
     }
 
 
@@ -45,13 +47,14 @@ def svg_escape(value: object) -> str:
 
 
 def build_svg(rows: list[dict], *, strategy: str) -> str:
-    """Plot measured mean insertion depth with log2(n) and 2 log2(n)."""
-    width, height = 940, 540
-    left, top, plot_width, plot_height = 82, 58, 760, 380
+    """Plot mean insertion depth with log2(n), 2 log2(n), and 2 ln(n)."""
+    width, height = 980, 560
+    left, top, plot_width, plot_height = 82, 58, 800, 390
     sizes = [row["size"] for row in rows]
     ymax = max(
         max(row["mean_insertion_depth"] for row in rows),
         max(row["two_log2_n"] for row in rows),
+        max(row["two_ln_n"] for row in rows),
     ) * 1.12
 
     def x(size: int) -> float:
@@ -64,18 +67,22 @@ def build_svg(rows: list[dict], *, strategy: str) -> str:
         f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['mean_insertion_depth']):.2f}"
         for index, row in enumerate(rows)
     )
-    log_reference = " ".join(
+    log2_reference = " ".join(
         f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['log2_n']):.2f}"
         for index, row in enumerate(rows)
     )
-    two_log_reference = " ".join(
+    two_log2_reference = " ".join(
         f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['two_log2_n']):.2f}"
+        for index, row in enumerate(rows)
+    )
+    two_ln_reference = " ".join(
+        f"{'M' if index == 0 else 'L'}{x(row['size']):.2f},{y(row['two_ln_n']):.2f}"
         for index, row in enumerate(rows)
     )
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
         f'<title id="title">{svg_escape(strategy)} · mean initial insertion depth</title>',
-        f'<desc id="desc">Mean depth at which each new node is initially inserted before balancing, for random inputs. Blue: measurement; green dashed: log2(n); orange dashed: 2 log2(n).</desc>',
+        f'<desc id="desc">Mean depth at which each new node is initially inserted before balancing, for random inputs. Blue: measurement; green dashed: log2(n); orange dashed: 2 log2(n); purple dashed: 2 ln(n).</desc>',
         '<style>text{font:12px system-ui,sans-serif;fill:#334155}.grid{stroke:#e2e8f0}path,line{vector-effect:non-scaling-stroke}</style>',
         f'<rect width="{width}" height="{height}" rx="14" fill="white"/>',
         f'<text x="26" y="32" style="font-size:17px;font-weight:650">{svg_escape(strategy)} · mean initial insertion depth</text>',
@@ -95,19 +102,21 @@ def build_svg(rows: list[dict], *, strategy: str) -> str:
             f'<text x="{xx:.2f}" y="{top + plot_height + 22}" text-anchor="middle">{row["size"]:,}</text>',
         ]
     parts += [
-        f'<path d="{two_log_reference}" stroke="#d97706" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
-        f'<path d="{log_reference}" stroke="#059669" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
+        f'<path d="{two_ln_reference}" stroke="#7c3aed" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
+        f'<path d="{two_log2_reference}" stroke="#d97706" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
+        f'<path d="{log2_reference}" stroke="#059669" stroke-width="2.5" stroke-dasharray="7 5" fill="none" opacity="0.9"/>',
         f'<path d="{measured}" stroke="#2563eb" stroke-width="3" fill="none"/>',
     ]
     for row in rows:
         parts.append(
-            f'<circle cx="{x(row["size"]):.2f}" cy="{y(row["mean_insertion_depth"]):.2f}" r="5" fill="#2563eb"><title>n={row["size"]:,}; mean insertion depth={row["mean_insertion_depth"]:.6g}; log2(n)={row["log2_n"]:.6g}; 2 log2(n)={row["two_log2_n"]:.6g}; ratio={row["ratio_to_log2_n"]:.6g}</title></circle>'
+            f'<circle cx="{x(row["size"]):.2f}" cy="{y(row["mean_insertion_depth"]):.2f}" r="5" fill="#2563eb"><title>n={row["size"]:,}; mean insertion depth={row["mean_insertion_depth"]:.6g}; log2(n)={row["log2_n"]:.6g}; 2 log2(n)={row["two_log2_n"]:.6g}; 2 ln(n)={row["two_ln_n"]:.6g}</title></circle>'
         )
     parts += [
         f'<text x="{left + plot_width - 8}" y="{y(rows[-1]["two_log2_n"]) - 10:.2f}" text-anchor="end" style="fill:#d97706;font-size:11px">2 log₂ n</text>',
+        f'<text x="{left + plot_width - 8}" y="{y(rows[-1]["two_ln_n"]) + 16:.2f}" text-anchor="end" style="fill:#7c3aed;font-size:11px">2 ln n</text>',
         f'<text x="{left + plot_width - 8}" y="{y(rows[-1]["log2_n"]) - 10:.2f}" text-anchor="end" style="fill:#059669;font-size:11px">log₂ n</text>',
         f'<text x="{left + plot_width - 8}" y="{y(rows[-1]["mean_insertion_depth"]) + 18:.2f}" text-anchor="end" style="fill:#2563eb;font-size:11px">measured mean</text>',
-        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: keys · y: mean initial insertion depth · blue: measurement · green dashed: log₂ n · orange dashed: 2 log₂ n</text>',
+        f'<text x="26" y="{top + plot_height + 48}" style="fill:#64748b;font-size:11px">x: keys · y: mean initial insertion depth · blue: measurement · green dashed: log₂ n · orange dashed: 2 log₂ n · purple dashed: 2 ln n</text>',
         "</svg>",
     ]
     return "\n".join(parts)
@@ -151,7 +160,8 @@ def main() -> None:
         rows.append(row)
         print(
             f"Finished n={size:,}: mean insertion depth={row['mean_insertion_depth']:.3g}; "
-            f"log2(n)={row['log2_n']:.3g}; 2 log2(n)={row['two_log2_n']:.3g}",
+            f"log2(n)={row['log2_n']:.3g}; 2 log2(n)={row['two_log2_n']:.3g}; "
+            f"2 ln(n)={row['two_ln_n']:.3g}",
             flush=True,
         )
     with (args.output / "insertion_depth_compare.csv").open(
@@ -172,6 +182,7 @@ def main() -> None:
         "seed": args.seed,
         "total_trials": len(sizes) * args.trials,
         "metric": "mean_insertion_depth before balancing",
+        "references": ["log2(n)", "2 log2(n)", "2 ln(n)"],
     }
     (args.output / "metadata.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"
