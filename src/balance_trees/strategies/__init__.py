@@ -11,6 +11,7 @@ from .paper import GeometricStop, Zig, ZigZag
 from .random_level import TreapPriority
 from .random_level_v2 import RandomLevelV2
 from .random_level_v2_1 import RandomLevelV21
+from .random_level_v2_1_1 import RandomLevelV211
 from .random_level_v3 import RandomLevelV3
 from .random_level_v4 import RandomLevelV4
 from .registry import StrategyFactory, StrategySpec
@@ -89,6 +90,12 @@ for identifier, spec in {
         "Local repair, log-width priorities",
         "Use ceil(log2(k + 1)) fresh bits for the k-th insertion, then apply the v2 target selection and local repair. Strict new minima reach the root. The sampled priority range widens over time; no logarithmic-depth guarantee.",
     ),
+    "random-level-v2-1-1": StrategySpec(
+        RandomLevelV211,
+        "Random level v2.1.1",
+        "Local repair, fixed synthetic bounds",
+        "Use v2.1's growing logarithmic priority width, but do not store observed extrema. Treat the interval as [1, 2**b - 2] for a b-bit priority: zero promotes to the root and the maximum stays at its insertion depth. Target selection and local repair match v2. No logarithmic-depth guarantee.",
+    ),
     "random-level-v3": StrategySpec(
         RandomLevelV3,
         "Random level v3",
@@ -118,6 +125,7 @@ __all__ = [
     "NoRebalance",
     "RandomLevelV2",
     "RandomLevelV21",
+    "RandomLevelV211",
     "RandomLevelV3",
     "RandomLevelV4",
     "RebalanceContext",
